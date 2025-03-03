@@ -11,6 +11,7 @@ struct ContentView: View {
     @StateObject private var speechRecognizerViewModel = SpeechRecognizerViewModel()
     @StateObject private var microphoneViewModel = MicrophoneInputViewModel()
     @StateObject private var transcriptionViewModel = TranscriptionViewModel()
+    @StateObject private var audioFileTranscriberViewModel = AudioFileTranscriberViewModel()
     
     var body: some View {
         NavigationSplitView {
@@ -77,15 +78,36 @@ struct ContentView: View {
 
     private var recordingView: some View {
         VStack(spacing: 20) {
-            recordingVisualizerSection
-            TranscribedTextView(transcribedText: speechRecognizerViewModel.transcribedText)
-            
-            Spacer()
-            SaveButton(action: saveTranscription)
+            TabView {
+                // Microphone recording tab
+                VStack(spacing: 20) {
+                    recordingVisualizerSection
+                    TranscribedTextView(transcribedText: speechRecognizerViewModel.transcribedText)
+                    
+                    Spacer()
+                    SaveButton(action: saveTranscription)
+                }
+                .padding()
+                .tabItem {
+                    Label("Microphone", systemImage: "mic")
+                }
+                
+                // Audio file transcription tab
+                AudioFileTranscriberView(
+                    viewModel: audioFileTranscriberViewModel,
+                    onTranscriptionComplete: { transcribedText in
+                        saveFileTranscription(transcribedText)
+                    }
+                )
+                .padding()
+                .tabItem {
+                    Label("Audio File", systemImage: "doc.music")
+                }
+            }
         }
         .padding()
         .overlay(InputDeviceInfoView(inputSource: microphoneViewModel.currentInputSource)
-                .environmentObject(microphoneViewModel),
+                 .environmentObject(microphoneViewModel),
                  alignment: .topTrailing)
     }
     
@@ -118,6 +140,20 @@ struct ContentView: View {
         }
     }
     
+    private func saveFileTranscription(_ text: String) {
+        let newTranscription = Transcription(
+            title: "File Transcription \(transcriptionViewModel.transcriptions.count + 1)",
+            content: text,
+            tags: transcriptionViewModel.generateTags(for: text)
+        )
+        transcriptionViewModel.addTranscription(newTranscription)
+        
+        DispatchQueue.main.async {
+            audioFileTranscriberViewModel.transcribedText = ""
+            transcriptionViewModel.selectedTranscription = newTranscription
+        }
+    }
+    
     private func addTranscription() {
         let newTranscription = Transcription(
             title: "New Transcription",
@@ -143,6 +179,7 @@ struct ContentView_Previews: PreviewProvider {
             .environmentObject(SpeechRecognizerViewModel())
             .environmentObject(MicrophoneInputViewModel())
             .environmentObject(TranscriptionViewModel())
+            .environmentObject(AudioFileTranscriberViewModel())
     }
 }
 #endif
