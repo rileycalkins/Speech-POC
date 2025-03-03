@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */; };
 		744749D82CA5B7F8009F46C4 /* CircularAudioVisualizerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749D72CA5B7F8009F46C4 /* CircularAudioVisualizerView.swift */; };
 		744749DD2CA5D60E009F46C4 /* MicrophoneInputViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749DC2CA5D60E009F46C4 /* MicrophoneInputViewModel.swift */; };
 		744749DF2CA5DCDA009F46C4 /* InputDeviceInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749DE2CA5DCDA009F46C4 /* InputDeviceInfoView.swift */; };
@@ -50,6 +51,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileTranscriberView.swift; sourceTree = "<group>"; };
 		744749D72CA5B7F8009F46C4 /* CircularAudioVisualizerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CircularAudioVisualizerView.swift; sourceTree = "<group>"; };
 		744749DC2CA5D60E009F46C4 /* MicrophoneInputViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicrophoneInputViewModel.swift; sourceTree = "<group>"; };
 		744749DE2CA5DCDA009F46C4 /* InputDeviceInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InputDeviceInfoView.swift; sourceTree = "<group>"; };
@@ -243,6 +245,7 @@
 			isa = PBXGroup;
 			children = (
 				74E684E52CA4DC3500803277 /* SpeechRecognizerViewModel.swift */,
+				21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */,
 				744749DC2CA5D60E009F46C4 /* MicrophoneInputViewModel.swift */,
 				74CB4E6E2CA7139B00983594 /* TranscriptionViewModel.swift */,
 			);
@@ -390,6 +393,7 @@
 				744749DD2CA5D60E009F46C4 /* MicrophoneInputViewModel.swift in Sources */,
 				74E684E62CA4DC3500803277 /* SpeechRecognizerViewModel.swift in Sources */,
 				744749E12CA5DDAA009F46C4 /* RecordingButtonView.swift in Sources */,
+				21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */,
 				744749E32CA5DE31009F46C4 /* TranscribedTextView.swift in Sources */,
 				744749D82CA5B7F8009F46C4 /* CircularAudioVisualizerView.swift in Sources */,
 				74CB4E692CA7132D00983594 /* TranscriptionDetailView.swift in Sources */,
