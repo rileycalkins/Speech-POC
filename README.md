@@ -1,17 +1,17 @@
-# Real-Time Speech Recognition & Transcription for macOS (R&D Proof of Concept) [In Development]
+# File-Based Speech Transcription for macOS (R&D Proof of Concept) [In Development]
 
 
-This project was developed as a proof of concept to explore the capabilities of real-time speech recognition and natural language processing on macOS. 
+This project was developed as a proof of concept to explore the capabilities of speech transcription on macOS. 
 
-Utilizing Apple's [**Speech**](https://developer.apple.com/documentation/speech/) framework, it captures and transcribes spoken input in real-time. Additionally, the integration of the [**Natural Language**](https://developer.apple.com/documentation/naturallanguage/) framework allows for tagging and semantic analysis of the transcriptions, enabling more nuanced and meaningful data extraction. 
+Utilizing Apple's [**Speech**](https://developer.apple.com/documentation/speech/) framework, it transcribes audio files into text. Additionally, the integration of the [**Natural Language**](https://developer.apple.com/documentation/naturallanguage/) framework allows for tagging and semantic analysis of the transcriptions, enabling more nuanced and meaningful data extraction. 
 
-The goal of this R&D effort was to investigate the potential for building intuitive and responsive voice-driven applications that leverage built-in macOS technologies. The findings from this project can serve as a foundation for more complex applications, such as automated transcription services, or accessibility tools. 
+The goal of this R&D effort was to investigate the potential for building intuitive applications that leverage built-in macOS technologies. The findings from this project can serve as a foundation for more complex applications, such as automated transcription services, or accessibility tools. 
 
 Further development could explore enhancements like improved contextual understanding in tagging.
 
 # Features
-* **Real-Time Speech Recognition**:
-    * Capture and transcribe speech in real-time
+* **Audio File Transcription**:
+    * Upload and transcribe audio files
 * **Natural Language Tagging**:
     * Automatically generate tags for saved transcriptions
 * **Transcription Management**:
@@ -24,10 +24,11 @@ Further development could explore enhancements like improved contextual understa
 
 # Usage
 
-### Recording Audio
-1. Click the microphone button to start/stop recording; the visualizer will display the audio levels in real-time.
-2. Click the **Save** button below the transcribed text; this will save the transcription to the list of recordings.
-3. After saving, the app will switch to the split view, where you can edit your transcription and tags.
+### Transcribing Audio Files
+1. Upload an audio file using the file picker.
+2. The app will automatically transcribe the audio and display the text.
+3. After transcription is complete, click the **Save** button to save the transcription to the list of recordings.
+4. After saving, the app will switch to the split view, where you can edit your transcription and tags.
 
 ### Managing Transcriptions
 1. On the left side of the split view, you'll see a list of your saved transcriptions.

@@ -7,9 +7,11 @@
 
 import SwiftUI
 
+// Import the required models and components
+import Foundation
+
 struct SplitContentView: View {
     @EnvironmentObject var transcriptionViewModel: TranscriptionViewModel
-    @EnvironmentObject var speechRecognizerViewModel: SpeechRecognizerViewModel
     var backAction: (() -> Void)?
 
     var body: some View {

@@ -8,8 +8,6 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var speechRecognizerViewModel = SpeechRecognizerViewModel()
-    @StateObject private var microphoneViewModel = MicrophoneInputViewModel()
     @StateObject private var transcriptionViewModel = TranscriptionViewModel()
     @StateObject private var audioFileTranscriberViewModel = AudioFileTranscriberViewModel()
     
@@ -78,66 +76,16 @@ struct ContentView: View {
 
     private var recordingView: some View {
         VStack(spacing: 20) {
-            TabView {
-                // Microphone recording tab
-                VStack(spacing: 20) {
-                    recordingVisualizerSection
-                    TranscribedTextView(transcribedText: speechRecognizerViewModel.transcribedText)
-                    
-                    Spacer()
-                    SaveButton(action: saveTranscription)
-                }
-                .padding()
-                .tabItem {
-                    Label("Microphone", systemImage: "mic")
-                }
-                
-                // Audio file transcription tab
-                AudioFileTranscriberView(
-                    viewModel: audioFileTranscriberViewModel,
-                    onTranscriptionComplete: { transcribedText in
-                        saveFileTranscription(transcribedText)
-                    }
-                )
-                .padding()
-                .tabItem {
-                    Label("Audio File", systemImage: "doc.music")
-                }
-            }
-        }
-        .padding()
-        .overlay(InputDeviceInfoView(inputSource: microphoneViewModel.currentInputSource)
-                 .environmentObject(microphoneViewModel),
-                 alignment: .topTrailing)
-    }
-    
-    private var recordingVisualizerSection: some View {
-        ZStack {
-            CircularAudioVisualizerView(audioLevel: speechRecognizerViewModel.audioLevel, maxCircleSize: 80)
-                .frame(width: 150, height: 150)
-
-            RecordingButtonView(
-                isRecording: $speechRecognizerViewModel.isRecording,
-                action: { onSuccess, onError in
-                    speechRecognizerViewModel.toggleRecording()
+            // Audio file transcription view
+            AudioFileTranscriberView(
+                viewModel: audioFileTranscriberViewModel,
+                onTranscriptionComplete: { transcribedText in
+                    saveFileTranscription(transcribedText)
                 }
             )
+            .padding()
         }
-        .frame(width: 250, height: 250)
-    }
-
-    private func saveTranscription() {
-        let newTranscription = Transcription(
-            title: "Saved Transcription \(transcriptionViewModel.transcriptions.count + 1)",
-            content: speechRecognizerViewModel.transcribedText,
-            tags: transcriptionViewModel.generateTags(for: speechRecognizerViewModel.transcribedText)
-        )
-        transcriptionViewModel.addTranscription(newTranscription)
-        
-        DispatchQueue.main.async {
-            speechRecognizerViewModel.transcribedText = ""
-            transcriptionViewModel.selectedTranscription = newTranscription
-        }
+        .padding()
     }
     
     private func saveFileTranscription(_ text: String) {
@@ -176,8 +124,6 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .previewLayout(.fixed(width: 800, height: 600))
-            .environmentObject(SpeechRecognizerViewModel())
-            .environmentObject(MicrophoneInputViewModel())
             .environmentObject(TranscriptionViewModel())
             .environmentObject(AudioFileTranscriberViewModel())
     }
