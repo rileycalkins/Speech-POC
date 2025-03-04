@@ -3,6 +3,11 @@ import AVFoundation
 import Speech
 import Combine
 
+// Note: If you see linter errors about missing WordTimestamp type:
+// 1. Make sure WordTimestamp.swift is included in your target
+// 2. Check your project's build phases and module organization
+// 3. Resolve these issues in Xcode by ensuring all model files are properly included
+
 // ViewModel for audio file transcription
 class AudioFileTranscriberViewModel: ObservableObject {
     @Published var transcribedText: String = ""
@@ -10,6 +15,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
     @Published var progress: Double = 0.0
     @Published var estimatedRemainingTime: TimeInterval = 0
     @Published var errorMessage: String?
+    @Published var wordTimestamps: [WordTimestamp] = []
     
     private var recognitionRequest: SFSpeechURLRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
@@ -48,6 +54,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
         self.transcribedText = ""
         self.progress = 0
         self.errorMessage = nil
+        self.wordTimestamps = []
         
         // Get audio file duration for progress calculation
         getAudioDuration(for: url) { [weak self] duration in
@@ -107,6 +114,9 @@ class AudioFileTranscriberViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.transcribedText = result.bestTranscription.formattedString
                     
+                    // Extract word timestamps
+                    self.extractWordTimestamps(from: result.bestTranscription)
+                    
                     // Update progress based on the transcribed text length if final
                     if result.isFinal {
                         self.progress = 1.0
@@ -124,6 +134,21 @@ class AudioFileTranscriberViewModel: ObservableObject {
                 }
             }
         }
+    }
+    
+    private func extractWordTimestamps(from transcription: SFTranscription) {
+        var updatedTimestamps: [WordTimestamp] = []
+        
+        for segment in transcription.segments {
+            let wordTimestamp = WordTimestamp(
+                word: segment.substring,
+                startTime: segment.timestamp,
+                endTime: segment.timestamp + segment.duration
+            )
+            updatedTimestamps.append(wordTimestamp)
+        }
+        
+        self.wordTimestamps = updatedTimestamps
     }
     
     func cancelTranscription() {
@@ -187,7 +212,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
 // View for audio file transcription
 struct AudioFileTranscriberView: View {
     @ObservedObject var viewModel: AudioFileTranscriberViewModel
-    var onTranscriptionComplete: (String) -> Void
+    var onTranscriptionComplete: (String, [WordTimestamp]) -> Void
     
     var body: some View {
         VStack(spacing: 16) {
@@ -251,7 +276,7 @@ struct AudioFileTranscriberView: View {
                             .font(.headline)
                         Spacer()
                         Button("Save") {
-                            onTranscriptionComplete(viewModel.transcribedText)
+                            onTranscriptionComplete(viewModel.transcribedText, viewModel.wordTimestamps)
                         }
                         .buttonStyle(.borderedProminent)
                     }
@@ -284,7 +309,7 @@ struct AudioFileTranscriberView_Previews: PreviewProvider {
     static var previews: some View {
         AudioFileTranscriberView(
             viewModel: AudioFileTranscriberViewModel(),
-            onTranscriptionComplete: { _ in }
+            onTranscriptionComplete: { _, _ in }
         )
         .frame(width: 500, height: 400)
         .previewLayout(.sizeThatFits)

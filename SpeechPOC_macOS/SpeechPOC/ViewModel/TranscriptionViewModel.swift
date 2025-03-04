@@ -6,6 +6,13 @@
 //
 
 import NaturalLanguage
+import Foundation
+import SwiftUI
+
+// If the Transcription and WordTimestamp imports don't resolve,
+// you'll need to adjust your project settings in Xcode:
+// 1. Make sure Transcription.swift and WordTimestamp.swift are included in the target
+// 2. Ensure proper module organization
 
 class TranscriptionViewModel: ObservableObject {
     @Published var transcriptions: [Transcription] = []
@@ -15,6 +22,17 @@ class TranscriptionViewModel: ObservableObject {
 
     func addTranscription(_ transcription: Transcription) {
         transcriptions.append(transcription)
+    }
+    
+    func addTranscriptionWithTimestamps(text: String, wordTimestamps: [WordTimestamp], title: String = "New Transcription") {
+        let tags = generateTags(for: text)
+        let transcription = Transcription(
+            title: title,
+            content: text,
+            tags: tags,
+            wordTimestamps: wordTimestamps
+        )
+        addTranscription(transcription)
     }
     
     func updateTranscription(_ updatedTranscription: Transcription) {

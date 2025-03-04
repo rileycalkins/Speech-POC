@@ -6,6 +6,13 @@
 //
 
 import SwiftUI
+import Foundation
+
+// Note: The linter errors for missing types will need to be resolved in Xcode
+// You will need to:
+// 1. Make sure all model files (Transcription.swift, WordTimestamp.swift) are included in the target
+// 2. Check that your module organization is correct
+// 3. Ensure the files are in the correct build phases
 
 struct TranscriptionDetailView: View {
     @Binding var transcription: Transcription
@@ -13,6 +20,7 @@ struct TranscriptionDetailView: View {
     var gradientConfig: GradientConfiguration = .defaultConfig
     
     @State private var editedTitle: String = ""
+    @State private var showTimestamps: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -24,6 +32,57 @@ struct TranscriptionDetailView: View {
                 .border(Color.gray, width: 1)
                 .frame(minHeight: 200)
                 .padding([.leading, .trailing])
+            
+            // Word timestamps section
+            if !transcription.wordTimestamps.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Word Timestamps")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Toggle("Show", isOn: $showTimestamps)
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                    }
+                    .padding(.horizontal)
+                    
+                    if showTimestamps {
+                        ScrollView {
+                            LazyVStack(alignment: .leading, spacing: 4) {
+                                ForEach(transcription.wordTimestamps) { timestamp in
+                                    HStack {
+                                        Text(timestamp.word)
+                                            .font(.system(.body, design: .monospaced))
+                                        
+                                        Spacer()
+                                        
+                                        Text("Start: \(timestamp.formattedStartTime)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        
+                                        Text("End: \(timestamp.formattedEndTime)")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                    .padding(.vertical, 2)
+                                    .padding(.horizontal, 8)
+                                    .background(Color.gray.opacity(0.1))
+                                    .cornerRadius(4)
+                                }
+                            }
+                            .padding(8)
+                        }
+                        .frame(height: 200)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.05))
+                        )
+                        .padding(.horizontal)
+                    }
+                }
+            }
             
             TaggingView(tags: $transcription.tags, gradientConfig: gradientConfig)
                 .padding([.leading, .trailing])
@@ -61,7 +120,11 @@ struct TranscriptionDetailView_Previews: PreviewProvider {
         let sampleTranscription = Transcription(
             title: "Transcription title",
             content: "blablablablablablabla.",
-            tags: ["????", "blablablabla", "tag"]
+            tags: ["????", "blablablabla", "tag"],
+            wordTimestamps: [
+                WordTimestamp(word: "hello", startTime: 0.0, endTime: 0.5),
+                WordTimestamp(word: "world", startTime: 0.6, endTime: 1.2)
+            ]
         )
         
         StatefulPreviewWrapper(sampleTranscription) { binding in

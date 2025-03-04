@@ -36,7 +36,3 @@ Further development could explore enhancements like improved contextual understa
 3. You can edit the transcription title, content, and tags. Click the **Save** button to update the transcription.
 4. To delete a transcription, click on the trash icon in the toolbar.
 
-> [!WARNING]
-> 
-> When there is no audio input device connected, the app may not function as expected (you can obviously use your built-in microphone on your macOS machine but if you're using a Mac mini, for example, I highly recommend connecting using your AirPods or some other input source).
-

@@ -79,8 +79,8 @@ struct ContentView: View {
             // Audio file transcription view
             AudioFileTranscriberView(
                 viewModel: audioFileTranscriberViewModel,
-                onTranscriptionComplete: { transcribedText in
-                    saveFileTranscription(transcribedText)
+                onTranscriptionComplete: { transcribedText, wordTimestamps in
+                    saveFileTranscription(transcribedText, wordTimestamps)
                 }
             )
             .padding()
@@ -88,12 +88,17 @@ struct ContentView: View {
         .padding()
     }
     
-    private func saveFileTranscription(_ text: String) {
+    private func saveFileTranscription(_ text: String, _ wordTimestamps: [WorldTimestamp]) {
+        let title = "File Transcription \(transcriptionViewModel.transcriptions.count + 1)"
+        let tags = transcriptionViewModel.generateTags(for: text)
+        
         let newTranscription = Transcription(
-            title: "File Transcription \(transcriptionViewModel.transcriptions.count + 1)",
+            title: title,
             content: text,
-            tags: transcriptionViewModel.generateTags(for: text)
+            tags: tags,
+            wordTimestamps: wordTimestamps
         )
+        
         transcriptionViewModel.addTranscription(newTranscription)
         
         DispatchQueue.main.async {
