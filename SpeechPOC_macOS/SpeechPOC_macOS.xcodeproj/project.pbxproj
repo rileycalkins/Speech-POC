@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2171E7D62D779396008EC9E0 /* ModelExports.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2171E7D42D779396008EC9E0 /* ModelExports.swift */; };
 		2171E7D72D779396008EC9E0 /* WordTimestamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2171E7D52D779396008EC9E0 /* WordTimestamp.swift */; };
+		21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */; };
 		21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */; };
 		744749E12CA5DDAA009F46C4 /* RecordingButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749E02CA5DDAA009F46C4 /* RecordingButtonView.swift */; };
 		744749E72CA629E8009F46C4 /* GradientConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749E62CA629E8009F46C4 /* GradientConfiguration.swift */; };
@@ -47,8 +47,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		2171E7D42D779396008EC9E0 /* ModelExports.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelExports.swift; sourceTree = "<group>"; };
 		2171E7D52D779396008EC9E0 /* WordTimestamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordTimestamp.swift; sourceTree = "<group>"; };
+		21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimiter.swift; sourceTree = "<group>"; };
 		21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileTranscriberView.swift; sourceTree = "<group>"; };
 		744749E02CA5DDAA009F46C4 /* RecordingButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingButtonView.swift; sourceTree = "<group>"; };
 		744749E62CA629E8009F46C4 /* GradientConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientConfiguration.swift; sourceTree = "<group>"; };
@@ -126,6 +126,7 @@
 		744749EE2CA6351E009F46C4 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */,
 				74CB4E792CA71E6800983594 /* Button Style */,
 				744749E52CA629C4009F46C4 /* Colors */,
 			);
@@ -136,7 +137,6 @@
 			isa = PBXGroup;
 			children = (
 				74CB4E6C2CA7137200983594 /* Transcription.swift */,
-				2171E7D42D779396008EC9E0 /* ModelExports.swift */,
 				2171E7D52D779396008EC9E0 /* WordTimestamp.swift */,
 			);
 			path = Model;
@@ -371,13 +371,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				74CB4E672CA712F500983594 /* TranscriptionListView.swift in Sources */,
+				21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */,
 				74E684B82CA4DA5B00803277 /* ContentView.swift in Sources */,
 				744749E72CA629E8009F46C4 /* GradientConfiguration.swift in Sources */,
 				74E684B62CA4DA5B00803277 /* SpeechPOCApp.swift in Sources */,
 				74CB4E6B2CA7134E00983594 /* TaggingView.swift in Sources */,
 				74CB4E712CA7181B00983594 /* SaveButton.swift in Sources */,
 				74CB4E732CA7187F00983594 /* ActionButtonStyle.swift in Sources */,
-				2171E7D62D779396008EC9E0 /* ModelExports.swift in Sources */,
 				2171E7D72D779396008EC9E0 /* WordTimestamp.swift in Sources */,
 				744749E12CA5DDAA009F46C4 /* RecordingButtonView.swift in Sources */,
 				21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */,

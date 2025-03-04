@@ -8,6 +8,9 @@ import Combine
 // 2. Check your project's build phases and module organization
 // 3. Resolve these issues in Xcode by ensuring all model files are properly included
 
+// Add RateLimiter import
+// Make sure to add the RateLimiter.swift file to your Xcode project
+
 // ViewModel for audio file transcription
 class AudioFileTranscriberViewModel: ObservableObject {
     @Published var transcribedText: String = ""
@@ -25,6 +28,12 @@ class AudioFileTranscriberViewModel: ObservableObject {
     private var audioDuration: TimeInterval = 0
     private var progressTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
+    
+    // Add throttling for UI updates
+    private var lastUpdateTime = Date()
+    
+    // Add rate limiter
+    private let rateLimiter = RateLimiter()
     
     init() {
         requestSpeechRecognitionAccess()
@@ -101,9 +110,13 @@ class AudioFileTranscriberViewModel: ObservableObject {
             return
         }
         
-        recognitionRequest.shouldReportPartialResults = true
+        // Set to false to reduce update frequency
+        recognitionRequest.shouldReportPartialResults = false
         
-        // Start progress tracking
+        // Set task hint for dictation to better handle longer audio
+        recognitionRequest.taskHint = .dictation
+        
+        // Start progress tracking with a slower update interval
         startProgressTracking()
         
         // Start the recognition task
@@ -111,18 +124,32 @@ class AudioFileTranscriberViewModel: ObservableObject {
             guard let self = self else { return }
             
             if let result = result {
-                DispatchQueue.main.async {
-                    self.transcribedText = result.bestTranscription.formattedString
-                    
-                    // Extract word timestamps
-                    self.extractWordTimestamps(from: result.bestTranscription)
-                    
-                    // Update progress based on the transcribed text length if final
-                    if result.isFinal {
-                        self.progress = 1.0
-                        self.stopProgressTracking()
-                        self.isTranscribing = false
+                let now = Date()
+                
+                // Store the latest transcription
+                self.transcribedText = result.bestTranscription.formattedString
+                
+                // Extract word timestamps
+                self.extractWordTimestamps(from: result.bestTranscription)
+                
+                // Only update UI at most once per second to prevent rate limit issues
+                if now.timeIntervalSince(self.lastUpdateTime) > 1.0 || result.isFinal {
+                    DispatchQueue.main.async {
+                        if let text = self.transcribedText {
+                            self.transcribedText = text
+                        }
+                        
+                        self.wordTimestamps = self.wordTimestamps
+                        
+                        // Update progress based on the transcribed text length if final
+                        if result.isFinal {
+                            self.progress = 1.0
+                            self.stopProgressTracking()
+                            self.isTranscribing = false
+                        }
                     }
+                    
+                    self.lastUpdateTime = now
                 }
             }
             
@@ -137,30 +164,37 @@ class AudioFileTranscriberViewModel: ObservableObject {
     }
     
     private func extractWordTimestamps(from transcription: SFTranscription) {
-        var updatedTimestamps: [WordTimestamp] = []
-        
-        for segment in transcription.segments {
-            let wordTimestamp = WordTimestamp(
-                word: segment.substring,
-                startTime: segment.timestamp,
-                endTime: segment.timestamp + segment.duration
-            )
-            updatedTimestamps.append(wordTimestamp)
+        // Only update if allowed by rate limiter (no more than once per second)
+        // This prevents the "Message send exceeds rate-limit threshold" error
+        if rateLimiter.shouldUpdate(for: "word-timestamps", minInterval: 1.0) {
+            var updatedTimestamps: [WordTimestamp] = []
+            
+            for segment in transcription.segments {
+                let wordTimestamp = WordTimestamp(
+                    word: segment.substring,
+                    startTime: segment.timestamp,
+                    endTime: segment.timestamp + segment.duration
+                )
+                updatedTimestamps.append(wordTimestamp)
+            }
+            
+            self.wordTimestamps = updatedTimestamps
         }
-        
-        self.wordTimestamps = updatedTimestamps
     }
     
     func cancelTranscription() {
+        isTranscribing = false
         recognitionTask?.cancel()
         recognitionTask = nil
-        stopProgressTracking()
-        isTranscribing = false
+        recognitionRequest = nil
+        progressTimer?.invalidate()
+        progressTimer = nil
+        errorMessage = "Transcription canceled."
     }
     
     private func startProgressTracking() {
-        // Start a timer to update progress
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
+        // Increase timer interval to reduce update frequency
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             guard let self = self, self.isTranscribing, let startTime = self.startTime else { return }
             
             let elapsedTime = Date().timeIntervalSince(startTime)

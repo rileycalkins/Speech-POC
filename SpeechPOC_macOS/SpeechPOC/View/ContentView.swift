@@ -6,6 +6,12 @@
 //
 //TODO: Refactor and tweak
 import SwiftUI
+import Foundation
+
+// Fix imports
+// Since we're in the same module, we just need to make sure the files are correctly
+// included in the Xcode project target
+// No special import statements needed as they're part of the same module
 
 struct ContentView: View {
     @StateObject private var transcriptionViewModel = TranscriptionViewModel()
@@ -88,7 +94,7 @@ struct ContentView: View {
         .padding()
     }
     
-    private func saveFileTranscription(_ text: String, _ wordTimestamps: [WorldTimestamp]) {
+    private func saveFileTranscription(_ text: String, _ wordTimestamps: [WordTimestamp]) {
         let title = "File Transcription \(transcriptionViewModel.transcriptions.count + 1)"
         let tags = transcriptionViewModel.generateTags(for: text)
         
