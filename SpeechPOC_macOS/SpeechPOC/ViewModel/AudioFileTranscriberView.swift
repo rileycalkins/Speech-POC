@@ -46,12 +46,27 @@ class AudioFileTranscriberViewModel: ObservableObject {
         openPanel.canChooseDirectories = false
         openPanel.canChooseFiles = true
         
-        openPanel.begin { [weak self] response in
-            guard let self = self else { return }
-            
-            if response == .OK, let url = openPanel.url {
-                self.fileURL = url
-                self.processAudioFile(url: url)
+        // Make sure the panel appears in front of the application's window
+        if let window = NSApplication.shared.windows.first {
+            openPanel.level = .floating
+            openPanel.beginSheetModal(for: window) { [weak self] response in
+                guard let self = self else { return }
+                
+                if response == .OK, let url = openPanel.url {
+                    self.fileURL = url
+                    self.processAudioFile(url: url)
+                }
+            }
+        } else {
+            // Fallback if we can't get the main window
+            openPanel.level = .modalPanel
+            openPanel.begin { [weak self] response in
+                guard let self = self else { return }
+                
+                if response == .OK, let url = openPanel.url {
+                    self.fileURL = url
+                    self.processAudioFile(url: url)
+                }
             }
         }
     }
@@ -135,12 +150,6 @@ class AudioFileTranscriberViewModel: ObservableObject {
                 // Only update UI at most once per second to prevent rate limit issues
                 if now.timeIntervalSince(self.lastUpdateTime) > 1.0 || result.isFinal {
                     DispatchQueue.main.async {
-                        if let text = self.transcribedText {
-                            self.transcribedText = text
-                        }
-                        
-                        self.wordTimestamps = self.wordTimestamps
-                        
                         // Update progress based on the transcribed text length if final
                         if result.isFinal {
                             self.progress = 1.0
