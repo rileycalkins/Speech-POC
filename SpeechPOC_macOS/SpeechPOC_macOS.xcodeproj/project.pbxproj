@@ -14,7 +14,6 @@
 		21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */; };
 		21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */; };
 		744749E12CA5DDAA009F46C4 /* RecordingButtonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749E02CA5DDAA009F46C4 /* RecordingButtonView.swift */; };
-		744749E72CA629E8009F46C4 /* GradientConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 744749E62CA629E8009F46C4 /* GradientConfiguration.swift */; };
 		74CB4E672CA712F500983594 /* TranscriptionListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CB4E662CA712F500983594 /* TranscriptionListView.swift */; };
 		74CB4E692CA7132D00983594 /* TranscriptionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CB4E682CA7132D00983594 /* TranscriptionDetailView.swift */; };
 		74CB4E6D2CA7137200983594 /* Transcription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CB4E6C2CA7137200983594 /* Transcription.swift */; };
@@ -56,7 +55,6 @@
 		21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimiter.swift; sourceTree = "<group>"; };
 		21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileTranscriberView.swift; sourceTree = "<group>"; };
 		744749E02CA5DDAA009F46C4 /* RecordingButtonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingButtonView.swift; sourceTree = "<group>"; };
-		744749E62CA629E8009F46C4 /* GradientConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GradientConfiguration.swift; sourceTree = "<group>"; };
 		74CB4E662CA712F500983594 /* TranscriptionListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionListView.swift; sourceTree = "<group>"; };
 		74CB4E682CA7132D00983594 /* TranscriptionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionDetailView.swift; sourceTree = "<group>"; };
 		74CB4E6C2CA7137200983594 /* Transcription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transcription.swift; sourceTree = "<group>"; };
@@ -110,14 +108,6 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
-		744749E52CA629C4009F46C4 /* Colors */ = {
-			isa = PBXGroup;
-			children = (
-				744749E62CA629E8009F46C4 /* GradientConfiguration.swift */,
-			);
-			path = Colors;
-			sourceTree = "<group>";
-		};
 		744749EE2CA6351E009F46C4 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
@@ -125,7 +115,6 @@
 				21636DA12D7A04250063D37D /* ProgressManager.swift */,
 				21636DA32D7A04320063D37D /* TranscriptionErrorHandler.swift */,
 				74CB4E792CA71E6800983594 /* Button Style */,
-				744749E52CA629C4009F46C4 /* Colors */,
 			);
 			path = Utilities;
 			sourceTree = "<group>";
@@ -373,7 +362,6 @@
 				21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */,
 				21636DA82D7A25A20063D37D /* TaggingView.swift in Sources */,
 				74E684B82CA4DA5B00803277 /* ContentView.swift in Sources */,
-				744749E72CA629E8009F46C4 /* GradientConfiguration.swift in Sources */,
 				74E684B62CA4DA5B00803277 /* SpeechPOCApp.swift in Sources */,
 				21636DA42D7A04320063D37D /* TranscriptionErrorHandler.swift in Sources */,
 				74CB4E712CA7181B00983594 /* SaveButton.swift in Sources */,
