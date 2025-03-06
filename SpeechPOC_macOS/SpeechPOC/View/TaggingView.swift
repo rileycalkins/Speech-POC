@@ -7,50 +7,7 @@
 
 import SwiftUI
 
-// Import GradientConfiguration - adjust for your project configuration
-// You may need to fix these imports in Xcode: make sure all files are
-// included in the correct target and build phases
 
-struct TaggingView: View {
-    @Binding var tags: [String]
-    var gradientConfig: GradientConfiguration
-    @State private var newTag: String = ""
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Tags").font(.headline)
-            
-            HStack {
-                TextField("Add tag", text: $newTag)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                Button(action: addTag) {
-                    Text("Add")
-                }
-                .disabled(newTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            }
-            
-            FlowLayout(spacing: 8) {
-                ForEach(tags, id: \.self) { tag in
-                    TagView(tag: tag, gradientConfig: gradientConfig) {
-                        removeTag(tag)
-                    }
-                }
-            }
-        }
-    }
-    
-    private func addTag() {
-        let tag = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !tag.isEmpty && !tags.contains(tag) {
-            tags.append(tag)
-            newTag = ""
-        }
-    }
-    
-    private func removeTag(_ tag: String) {
-        tags.removeAll { $0 == tag }
-    }
-}
 
 struct TagView: View {
     let tag: String
@@ -73,11 +30,7 @@ struct TagView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .background(
-            LinearGradient(
-                gradient: Gradient(colors: [gradientConfig.startColor, gradientConfig.endColor]),
-                startPoint: gradientConfig.direction == .horizontal ? .leading : (gradientConfig.direction == .vertical ? .top : .topLeading),
-                endPoint: gradientConfig.direction == .horizontal ? .trailing : (gradientConfig.direction == .vertical ? .bottom : .bottomTrailing)
-            )
+            Color.secondary
         )
         .cornerRadius(12)
     }
@@ -130,3 +83,111 @@ struct FlowLayout: Layout {
         }
     }
 }
+
+struct TaggingView: View {
+    @Binding var tags: [String]
+    var gradientConfig: GradientConfiguration
+    @State private var newTag: String = ""
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Tags").font(.headline)
+            
+            HStack {
+                TextField("Add tag", text: $newTag)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                Button(action: addTag) {
+                    Text("Add")
+                }
+                .disabled(newTag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            }
+            
+            FlowLayout(spacing: 8) {
+                ForEach(tags, id: \.self) { tag in
+                    TagView(tag: tag, gradientConfig: gradientConfig) {
+                        removeTag(tag)
+                    }
+                }
+            }
+        }
+    }
+    
+    private func addTag() {
+        let tag = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !tag.isEmpty && !tags.contains(tag) {
+            tags.append(tag)
+            newTag = ""
+        }
+    }
+    
+    private func removeTag(_ tag: String) {
+        tags.removeAll { $0 == tag }
+    }
+}
+
+//struct TaggingView: View {
+//    @Binding var tags: [String]
+//    @State private var newTag: String = ""
+//    
+//    var gradientConfig: GradientConfig
+//    
+//    var body: some View {
+//        VStack(alignment: .leading) {
+//            HStack {
+//                TextField("Add a tag", text: $newTag, onCommit: addTag)
+//                    .textFieldStyle(RoundedBorderTextFieldStyle())
+//                Button("Add") {
+//                    addTag()
+//                }
+//            }
+//            ScrollView(.horizontal, showsIndicators: false) {
+//                HStack {
+//                    ForEach(tags, id: \.self) { tag in
+//                        HStack {
+//                            Text(tag)
+//                            Button(action: { removeTag(tag) }) {
+//                                Image(systemName: "xmark.circle.fill")
+//                                    .foregroundColor(.red)
+//                            }
+//                            .buttonStyle(PlainButtonStyle())
+//                        }
+//                        .padding(8)
+//                        .background(gradientConfig.highLevelGradient)
+//                        .cornerRadius(8)
+//                        .overlay(
+//                            RoundedRectangle(cornerRadius: 8)
+//                                .stroke(Color.white.opacity(0.6), lineWidth: 1)
+//                                .blendMode(.overlay)
+//                        )
+//                        .shadow(color: Color.black.opacity(0.2), radius: 3, x: 2, y: 2)
+//                    }
+//                }
+//            }
+//        }
+//        .padding()
+//    }
+//    
+//    private func addTag() {
+//        let trimmedTag = newTag.trimmingCharacters(in: .whitespacesAndNewlines)
+//        if !trimmedTag.isEmpty && !tags.contains(trimmedTag) {
+//            tags.append(trimmedTag)
+//            newTag = ""
+//        }
+//    }
+//    
+//    private func removeTag(_ tag: String) {
+//        tags.removeAll { $0 == tag }
+//    }
+//}
+
+#if DEBUG || TRACE_VIEW_CONSTRUCTION
+struct TaggingView_Previews: PreviewProvider {
+    @State static var sampleTags = ["SwiftUI", "Development", "macOS", "Gradient"]
+    
+    static var previews: some View {
+        TaggingView(tags: $sampleTags, gradientConfig: .defaultConfig)
+            .previewLayout(.sizeThatFits)
+            .padding()
+    }
+}
+#endif

@@ -253,6 +253,20 @@ class AudioFileTranscriberViewModel: ObservableObject {
             return
         }
         
+        // Reset progress for the current segment before starting
+        progress = 0.0
+        
+        // Make sure we have the right number of progress entries
+        while segmentProgress.count <= currentSegmentIndex {
+            segmentProgress.append(0.0)
+        }
+        
+        // Reset the current segment's progress
+        segmentProgress[currentSegmentIndex] = 0.0
+        
+        // Update overall progress to reflect the current state
+        updateOverallProgress()
+        
         let segmentURL = segmentURLs[currentSegmentIndex]
         startTranscription(url: segmentURL)
     }
@@ -282,6 +296,16 @@ class AudioFileTranscriberViewModel: ObservableObject {
         }
         
         wordTimestamps = allWordTimestamps
+        
+        // Set all segment progress values to 1.0 (completed)
+        for i in 0..<segmentProgress.count {
+            segmentProgress[i] = 1.0
+        }
+        
+        // Set overall progress to 1.0 (completed)
+        overallProgress = 1.0
+        progress = 1.0
+        
         isTranscribing = false
     }
     
@@ -450,9 +474,22 @@ class AudioFileTranscriberViewModel: ObservableObject {
     }
     
     private func updateOverallProgress() {
-        // Calculate overall progress based on completed segments
-        let completedProgress = segmentProgress.reduce(0.0, +)
-        overallProgress = completedProgress / Double(numberOfSegments)
+        // Calculate overall progress based on completed segments, weighted by their durations
+        if !segmentDurations.isEmpty {
+            let totalDuration = segmentDurations.reduce(0.0, +)
+            var weightedProgress = 0.0
+            
+            for i in 0..<min(segmentProgress.count, segmentDurations.count) {
+                let weight = segmentDurations[i] / totalDuration
+                weightedProgress += segmentProgress[i] * weight
+            }
+            
+            overallProgress = min(weightedProgress, 1.0)
+        } else {
+            // Fallback to simple average if durations aren't available
+            let completedProgress = segmentProgress.reduce(0.0, +)
+            overallProgress = completedProgress / Double(numberOfSegments)
+        }
     }
     
     private func startProgressTracking() {
@@ -475,9 +512,20 @@ class AudioFileTranscriberViewModel: ObservableObject {
             let remainingTime = max(0, estimatedTotalTime - elapsedTime)
             
             DispatchQueue.main.async {
+                // Update the current segment's progress
                 self.progress = newProgress
+                
+                // Ensure we have enough elements in the segmentProgress array
+                while self.segmentProgress.count <= self.currentSegmentIndex {
+                    self.segmentProgress.append(0.0)
+                }
+                
+                // Update the current segment's progress
                 self.segmentProgress[self.currentSegmentIndex] = newProgress
+                
+                // Recalculate the overall progress based on all segments
                 self.updateOverallProgress()
+                
                 self.estimatedRemainingTime = remainingTime
             }
         }
