@@ -134,6 +134,13 @@ class AudioFileTranscriberViewModel: ObservableObject {
         self.overallProgress = 0.0
         self.currentSegmentIndex = 0
         
+        // Reset segment-related properties
+        self.segmentURLs = []
+        self.segmentDurations = []
+        self.segmentTexts = []
+        self.segmentWordTimestamps = []
+        self.segmentProgress = Array(repeating: 0.0, count: self.numberOfSegments)
+        
         // Clean up previous temporary files
         self.cleanupTemporaryFiles()
         
@@ -261,6 +268,15 @@ class AudioFileTranscriberViewModel: ObservableObject {
             segmentProgress.append(0.0)
         }
         
+        // Ensure currentSegmentIndex is valid
+        if currentSegmentIndex < 0 || currentSegmentIndex >= segmentProgress.count {
+            // Reset to valid state
+            currentSegmentIndex = 0
+            while segmentProgress.count <= currentSegmentIndex {
+                segmentProgress.append(0.0)
+            }
+        }
+        
         // Reset the current segment's progress
         segmentProgress[currentSegmentIndex] = 0.0
         
@@ -376,8 +392,10 @@ class AudioFileTranscriberViewModel: ObservableObject {
                             self.segmentTexts.append(segmentText)
                             self.segmentWordTimestamps.append(segmentWordTimestamps)
                             
-                            // Update segment progress
-                            self.segmentProgress[self.currentSegmentIndex] = 1.0
+                            // Update segment progress - ensure array bounds safety
+                            if self.currentSegmentIndex >= 0 && self.currentSegmentIndex < self.segmentProgress.count {
+                                self.segmentProgress[self.currentSegmentIndex] = 1.0
+                            }
                             self.progress = 1.0
                             
                             // Update overall progress
@@ -521,7 +539,9 @@ class AudioFileTranscriberViewModel: ObservableObject {
                 }
                 
                 // Update the current segment's progress
-                self.segmentProgress[self.currentSegmentIndex] = newProgress
+                if self.currentSegmentIndex >= 0 && self.currentSegmentIndex < self.segmentProgress.count {
+                    self.segmentProgress[self.currentSegmentIndex] = newProgress
+                }
                 
                 // Recalculate the overall progress based on all segments
                 self.updateOverallProgress()

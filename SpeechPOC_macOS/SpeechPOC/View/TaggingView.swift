@@ -11,7 +11,7 @@ import SwiftUI
 
 struct TagView: View {
     let tag: String
-    let gradientConfig: GradientConfiguration
+    
     let onDelete: () -> Void
     
     var body: some View {
@@ -86,7 +86,7 @@ struct FlowLayout: Layout {
 
 struct TaggingView: View {
     @Binding var tags: [String]
-    var gradientConfig: GradientConfiguration
+    
     @State private var newTag: String = ""
     
     var body: some View {
@@ -104,7 +104,7 @@ struct TaggingView: View {
             
             FlowLayout(spacing: 8) {
                 ForEach(tags, id: \.self) { tag in
-                    TagView(tag: tag, gradientConfig: gradientConfig) {
+                    TagView(tag: tag) {
                         removeTag(tag)
                     }
                 }
@@ -179,15 +179,3 @@ struct TaggingView: View {
 //        tags.removeAll { $0 == tag }
 //    }
 //}
-
-#if DEBUG || TRACE_VIEW_CONSTRUCTION
-struct TaggingView_Previews: PreviewProvider {
-    @State static var sampleTags = ["SwiftUI", "Development", "macOS", "Gradient"]
-    
-    static var previews: some View {
-        TaggingView(tags: $sampleTags, gradientConfig: .defaultConfig)
-            .previewLayout(.sizeThatFits)
-            .padding()
-    }
-}
-#endif

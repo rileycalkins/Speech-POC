@@ -17,7 +17,7 @@ import Foundation
 struct TranscriptionDetailView: View {
     @Binding var transcription: Transcription
     var onSave: (Transcription) -> Void
-    var gradientConfig: GradientConfiguration = .defaultConfig
+//    var gradientConfig: GradientConfiguration = .defaultConfig
     
     @State private var editedTitle: String = ""
     @State private var showTimestamps: Bool = false
@@ -84,7 +84,7 @@ struct TranscriptionDetailView: View {
                 }
             }
             
-            TaggingView(tags: $transcription.tags, gradientConfig: gradientConfig)
+            TaggingView(tags: $transcription.tags)
                 .padding([.leading, .trailing])
             
             Spacer()
