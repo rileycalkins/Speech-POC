@@ -24,10 +24,12 @@ struct TranscriptionDetailView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
+            // Title field
             TextField("Title", text: $transcription.title)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .padding([.leading, .trailing, .top])
 
+            // Content editor
             TextEditor(text: $transcription.content)
                 .border(Color.gray, width: 1)
                 .frame(minHeight: 200)
@@ -36,40 +38,21 @@ struct TranscriptionDetailView: View {
             // Word timestamps section
             if !transcription.wordTimestamps.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("Word Timestamps")
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Toggle("Show", isOn: $showTimestamps)
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                    }
-                    .padding(.horizontal)
+                    SectionHeaderView(
+                        title: "Word Timestamps",
+                        isExpanded: $showTimestamps
+                    )
                     
                     if showTimestamps {
+                        // Using our custom timestamp list with the existing WordTimestamp data
                         ScrollView {
                             LazyVStack(alignment: .leading, spacing: 4) {
                                 ForEach(transcription.wordTimestamps) { timestamp in
-                                    HStack {
-                                        Text(timestamp.word)
-                                            .font(.system(.body, design: .monospaced))
-                                        
-                                        Spacer()
-                                        
-                                        Text("Start: \(timestamp.formattedStartTime)")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                        
-                                        Text("End: \(timestamp.formattedEndTime)")
-                                            .font(.caption)
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .padding(.vertical, 2)
-                                    .padding(.horizontal, 8)
-                                    .background(Color.gray.opacity(0.1))
-                                    .cornerRadius(4)
+                                    TimestampItemView(
+                                        word: timestamp.word,
+                                        startTime: timestamp.formattedStartTime,
+                                        endTime: timestamp.formattedEndTime
+                                    )
                                 }
                             }
                             .padding(8)
@@ -84,25 +67,19 @@ struct TranscriptionDetailView: View {
                 }
             }
             
+            // Tags section
             TaggingView(tags: $transcription.tags)
                 .padding([.leading, .trailing])
             
             Spacer()
             
+            // Save button
             HStack {
                 Spacer()
-                Button(action: {
+                Button("Save") {
                     onSave(transcription)
-                }) {
-                    Text("Save")
-                        .fontWeight(.bold)
-                        .padding()
-                        .frame(minWidth: 100)
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
                 }
-                .buttonStyle(PlainButtonStyle())
+                .buttonStyle(PrimaryButtonStyle())
             }
             .padding()
         }
@@ -113,4 +90,6 @@ struct TranscriptionDetailView: View {
         }
     }
 }
+
+
 

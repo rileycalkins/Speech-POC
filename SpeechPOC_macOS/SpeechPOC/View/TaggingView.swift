@@ -7,47 +7,40 @@
 
 import SwiftUI
 
-
-
-
 struct TaggingView: View {
     @Binding var tags: [String]
     @State private var newTag: String = ""
+    var tagStyle: TagStyle = .standard
+    var addButtonLabel: String = "Add"
+    var placeholderText: String = "Add a tag"
     
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
-                TextField("Add a tag", text: $newTag, onCommit: addTag)
+                TextField(placeholderText, text: $newTag, onCommit: addTag)
                     .textFieldStyle(RoundedBorderTextFieldStyle())
-                Button("Add") {
+                
+                Button(addButtonLabel) {
                     addTag()
                 }
+                .buttonStyle(.bordered)
             }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    ForEach(tags, id: \.self) { tag in
-                        HStack {
-                            Text(tag)
-                            Button(action: { removeTag(tag) }) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .foregroundColor(.red)
-                            }
-                            .buttonStyle(PlainButtonStyle())
+            
+            if !tags.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(tags, id: \.self) { tag in
+                            TagView(
+                                tag: tag,
+                                onDelete: { removeTag(tag) },
+                                style: tagStyle
+                            )
                         }
-                        .padding(8)
-                        .background(.secondary)
-                        .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color.white.opacity(0.6), lineWidth: 1)
-                                .blendMode(.overlay)
-                        )
-                        .shadow(color: Color.black.opacity(0.2), radius: 3, x: 2, y: 2)
                     }
+                    .padding(.vertical, 4)
                 }
             }
         }
-        .padding()
     }
     
     private func addTag() {
@@ -61,4 +54,30 @@ struct TaggingView: View {
     private func removeTag(_ tag: String) {
         tags.removeAll { $0 == tag }
     }
+}
+
+#Preview {
+    struct PreviewWrapper: View {
+        @State var tags = ["SwiftUI", "iOS", "macOS"]
+        
+        var body: some View {
+            VStack(spacing: 20) {
+                TaggingView(tags: $tags)
+                    .padding()
+                    .border(Color.gray.opacity(0.2))
+                
+                TaggingView(
+                    tags: $tags,
+                    tagStyle: .subtle,
+                    addButtonLabel: "Create",
+                    placeholderText: "New tag name"
+                )
+                .padding()
+                .border(Color.gray.opacity(0.2))
+            }
+            .padding()
+        }
+    }
+    
+    return PreviewWrapper()
 }
