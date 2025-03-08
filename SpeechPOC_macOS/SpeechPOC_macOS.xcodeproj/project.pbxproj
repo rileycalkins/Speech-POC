@@ -26,7 +26,6 @@
 		74CB4E732CA7187F00983594 /* ActionButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74CB4E722CA7187F00983594 /* ActionButtonStyle.swift */; };
 		74E53ABF2D38972C002FD8F6 /* BackButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E53ABE2D38972C002FD8F6 /* BackButton.swift */; };
 		74E684B62CA4DA5B00803277 /* SpeechPOCApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E684B52CA4DA5B00803277 /* SpeechPOCApp.swift */; };
-		74E684B82CA4DA5B00803277 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E684B72CA4DA5B00803277 /* ContentView.swift */; };
 		74E684BA2CA4DA5C00803277 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 74E684B92CA4DA5C00803277 /* Assets.xcassets */; };
 		74E684BD2CA4DA5C00803277 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 74E684BC2CA4DA5C00803277 /* Preview Assets.xcassets */; };
 		74E684C82CA4DA5C00803277 /* SpeechPOCTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74E684C72CA4DA5C00803277 /* SpeechPOCTests.swift */; };
@@ -72,7 +71,6 @@
 		74E53ABE2D38972C002FD8F6 /* BackButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackButton.swift; sourceTree = "<group>"; };
 		74E684B22CA4DA5B00803277 /* SpeechPOC_macOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeechPOC_macOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74E684B52CA4DA5B00803277 /* SpeechPOCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPOCApp.swift; sourceTree = "<group>"; };
-		74E684B72CA4DA5B00803277 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		74E684B92CA4DA5C00803277 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		74E684BC2CA4DA5C00803277 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		74E684BE2CA4DA5C00803277 /* SpeechPOC.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeechPOC.entitlements; sourceTree = "<group>"; };
@@ -217,7 +215,6 @@
 		74E684E32CA4DBDD00803277 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				74E684B72CA4DA5B00803277 /* ContentView.swift */,
 				74CB4E662CA712F500983594 /* TranscriptionListView.swift */,
 				21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */,
 				21636DB12D7C0AA70063D37D /* RootView.swift */,
@@ -377,7 +374,6 @@
 				21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */,
 				21636DAA2D7A55710063D37D /* AudioFileTranscriberViewModel.swift in Sources */,
 				21636DA82D7A25A20063D37D /* TaggingView.swift in Sources */,
-				74E684B82CA4DA5B00803277 /* ContentView.swift in Sources */,
 				74E684B62CA4DA5B00803277 /* SpeechPOCApp.swift in Sources */,
 				21636DA42D7A04320063D37D /* TranscriptionErrorHandler.swift in Sources */,
 				74CB4E712CA7181B00983594 /* SaveButton.swift in Sources */,
