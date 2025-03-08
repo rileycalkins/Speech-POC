@@ -59,6 +59,7 @@ protocol ProgressTrackable: AnyObject {
     func setSegmentState(_ index: Int, state: SegmentState)
     func reset(segments: Int)
     func completeAll()
+    func setSegmentDurations(_ durations: [TimeInterval])
 }
 
 /// Protocol for services that handle audio file transcription
