@@ -27,18 +27,21 @@ struct ContentView: View {
     var body: some View {
         NavigationSplitView {
             transcriptionListView
+                .navigationTitle("Transcriptions")
         } detail: {
             if let index = transcriptionViewModel.transcriptions.firstIndex(where: { $0.id == transcriptionViewModel.selectedTranscription?.id }) {
                 // Show existing transcription when one is selected
-                TranscriptionDetailView(
-                    transcription: $transcriptionViewModel.transcriptions[index],
-                    onSave: { updatedTranscription in
-                        transcriptionViewModel.updateTranscription(updatedTranscription)
-                        transcriptionViewModel.selectedTranscription = nil
-                    }
-                )
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
+                VStack {
+                    HStack {
+                        Button(action: { transcriptionViewModel.selectedTranscription = nil }) {
+                            HStack {
+                                Image(systemName: "arrow.left")
+                                Text("Back to Recording")
+                            }
+                        }
+                        
+                        Spacer()
+                        
                         Button(action: {
                             transcriptionViewModel.deleteTranscription(transcriptionViewModel.transcriptions[index])
                             transcriptionViewModel.selectedTranscription = nil
@@ -46,54 +49,66 @@ struct ContentView: View {
                             Image(systemName: "trash")
                         }
                     }
-                    ToolbarItem(placement: .navigation) {
-                        Button(action: { transcriptionViewModel.selectedTranscription = nil }) {
-                            Image(systemName: "arrow.left")
-                            Text("Back to Recording")
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    TranscriptionDetailView(
+                        transcription: $transcriptionViewModel.transcriptions[index],
+                        onSave: { updatedTranscription in
+                            transcriptionViewModel.updateTranscription(updatedTranscription)
+                            transcriptionViewModel.selectedTranscription = nil
                         }
-                    }
+                    )
                 }
             } else if audioFileTranscriberViewModel.isTranscribing || 
                      audioFileTranscriberViewModel.isPreparingSegments ||
                      !audioFileTranscriberViewModel.transcribedText.isEmpty {
                 // Show recording view only when actively transcribing or has transcription results
-                recordingView
-                    .toolbar {
-                        ToolbarItem(placement: .primaryAction) {
-                            fileTranscriptionButton
-                        }
-                    }
-            } else {
-                // Default: Show a new TranscriptionDetailView with a temporary transcription
-                TranscriptionDetailView(
-                    transcription: $temporaryTranscription,
-                    onSave: { newTranscription in
-                        // Create a copy with a new ID to ensure uniqueness
-                        var transcriptionToSave = newTranscription
-                        transcriptionToSave.id = UUID().uuidString
-                        
-                        // Add to the collection
-                        transcriptionViewModel.addTranscription(transcriptionToSave)
-                        
-                        // Select the newly created transcription
-                        DispatchQueue.main.async {
-                            transcriptionViewModel.selectedTranscription = transcriptionToSave
-                        }
-                        
-                        // Reset the temporary transcription for next time
-                        temporaryTranscription = Transcription(
-                            id: UUID().uuidString,
-                            title: "New Transcription",
-                            content: "",
-                            tags: [],
-                            wordTimestamps: []
-                        )
-                    }
-                )
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
+                VStack {
+                    HStack {
+                        Spacer()
                         fileTranscriptionButton
                     }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    recordingView
+                }
+            } else {
+                // Default: Show a new TranscriptionDetailView with a temporary transcription
+                VStack {
+                    HStack {
+                        Spacer()
+                        fileTranscriptionButton
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
+                    
+                    TranscriptionDetailView(
+                        transcription: $temporaryTranscription,
+                        onSave: { newTranscription in
+                            // Create a copy with a new ID to ensure uniqueness
+                            var transcriptionToSave = newTranscription
+                            transcriptionToSave.id = UUID()
+                            
+                            // Add to the collection
+                            transcriptionViewModel.addTranscription(transcriptionToSave)
+                            
+                            // Select the newly created transcription
+                            DispatchQueue.main.async {
+                                transcriptionViewModel.selectedTranscription = transcriptionToSave
+                            }
+                            
+                            // Reset the temporary transcription for next time
+                            temporaryTranscription = Transcription(
+                                id: UUID(),
+                                title: "New Transcription",
+                                content: "",
+                                tags: [],
+                                wordTimestamps: []
+                            )
+                        }
+                    )
                 }
             }
         }
@@ -112,30 +127,34 @@ struct ContentView: View {
     }
     
     private var transcriptionListView: some View {
-        List(selection: $transcriptionViewModel.selectedTranscription) {
-            ForEach(transcriptionViewModel.transcriptions) { transcription in
-                Text(transcription.title)
-                    .tag(transcription)
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(transcriptionViewModel.selectedTranscription?.id == transcription.id ?
-                                  Color(NSColor.selectedTextBackgroundColor).opacity(0.2) : Color.clear)
-                    )
-                    .contentShape(Rectangle())
-            }
-            .onMove(perform: moveTranscriptions)
-        }
-        .frame(minWidth: 200)
-        .listStyle(SidebarListStyle())
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
+        VStack {
+            HStack {
+                Text("Transcriptions")
+                    .font(.headline)
+                Spacer()
                 Button(action: addTranscription) {
                     Image(systemName: "plus")
                 }
             }
+            .padding(.horizontal)
+            
+            List(selection: $transcriptionViewModel.selectedTranscription) {
+                ForEach(transcriptionViewModel.transcriptions) { transcription in
+                    Text(transcription.title)
+                        .tag(transcription)
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(transcriptionViewModel.selectedTranscription?.id == transcription.id ?
+                                      Color(NSColor.selectedTextBackgroundColor).opacity(0.2) : Color.clear)
+                        )
+                        .contentShape(Rectangle())
+                }
+                .onMove(perform: moveTranscriptions)
+            }
         }
-        .navigationTitle("Transcriptions")
+        .frame(minWidth: 200)
+        .listStyle(SidebarListStyle())
     }
 
     private var recordingView: some View {

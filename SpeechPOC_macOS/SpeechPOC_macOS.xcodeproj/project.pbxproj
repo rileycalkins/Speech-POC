@@ -14,6 +14,7 @@
 		21636DAC2D7A56080063D37D /* TagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DAB2D7A56080063D37D /* TagView.swift */; };
 		21636DAE2D7A70610063D37D /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DAD2D7A70610063D37D /* FlowLayout.swift */; };
 		21636DB02D7AAAE00063D37D /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DAF2D7AAAE00063D37D /* SharedComponents.swift */; };
+		21636DB22D7C0AA70063D37D /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DB12D7C0AA70063D37D /* RootView.swift */; };
 		2171E7D72D779396008EC9E0 /* WordTimestamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2171E7D52D779396008EC9E0 /* WordTimestamp.swift */; };
 		21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */; };
 		21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */; };
@@ -58,6 +59,7 @@
 		21636DAB2D7A56080063D37D /* TagView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagView.swift; sourceTree = "<group>"; };
 		21636DAD2D7A70610063D37D /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		21636DAF2D7AAAE00063D37D /* SharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedComponents.swift; sourceTree = "<group>"; };
+		21636DB12D7C0AA70063D37D /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		2171E7D52D779396008EC9E0 /* WordTimestamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordTimestamp.swift; sourceTree = "<group>"; };
 		21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimiter.swift; sourceTree = "<group>"; };
 		21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileTranscriberView.swift; sourceTree = "<group>"; };
@@ -218,6 +220,7 @@
 				74E684B72CA4DA5B00803277 /* ContentView.swift */,
 				74CB4E662CA712F500983594 /* TranscriptionListView.swift */,
 				21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */,
+				21636DB12D7C0AA70063D37D /* RootView.swift */,
 				21636DA72D7A25A20063D37D /* TaggingView.swift */,
 				21636DAF2D7AAAE00063D37D /* SharedComponents.swift */,
 				21636DAD2D7A70610063D37D /* FlowLayout.swift */,
@@ -370,6 +373,7 @@
 				21636DAC2D7A56080063D37D /* TagView.swift in Sources */,
 				21636DA22D7A04250063D37D /* ProgressManager.swift in Sources */,
 				74CB4E672CA712F500983594 /* TranscriptionListView.swift in Sources */,
+				21636DB22D7C0AA70063D37D /* RootView.swift in Sources */,
 				21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */,
 				21636DAA2D7A55710063D37D /* AudioFileTranscriberViewModel.swift in Sources */,
 				21636DA82D7A25A20063D37D /* TaggingView.swift in Sources */,
