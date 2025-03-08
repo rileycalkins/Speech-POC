@@ -146,13 +146,19 @@ class ProgressManager: ObservableObject, ProgressTrackable {
     
     /// Reset all progress
     /// - Parameter segments: Optional new number of segments
-    func reset(segments: Int? = nil) {
-        let segmentCount = segments ?? numberOfSegments
+    func reset(segments: Int) {
+        let segmentCount = segments
         self.segmentProgress = Array(repeating: 0.0, count: max(segmentCount, 1))
         self.segmentStates = Array(repeating: .pending, count: max(segmentCount, 1))
         self.overallProgress = 0.0
         
         logger.debug("Reset progress manager with \(segmentCount) segments")
+    }
+    
+    /// Reset with optional segment count
+    /// - Parameter segments: Optional segment count (uses numberOfSegments if nil)
+    func resetWithOptional(segments: Int? = nil) {
+        reset(segments: segments ?? numberOfSegments)
     }
     
     /// Mark all segments as completed
