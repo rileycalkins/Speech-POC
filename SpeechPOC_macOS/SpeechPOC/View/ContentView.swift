@@ -16,12 +16,20 @@ import Foundation
 struct ContentView: View {
     @StateObject private var transcriptionViewModel = TranscriptionViewModel()
     @StateObject private var audioFileTranscriberViewModel = AudioFileTranscriberViewModel()
+    @State private var temporaryTranscription = Transcription(
+        id: UUID(),
+        title: "New Transcription",
+        content: "",
+        tags: [],
+        wordTimestamps: []
+    )
     
     var body: some View {
         NavigationSplitView {
             transcriptionListView
         } detail: {
             if let index = transcriptionViewModel.transcriptions.firstIndex(where: { $0.id == transcriptionViewModel.selectedTranscription?.id }) {
+                // Show existing transcription when one is selected
                 TranscriptionDetailView(
                     transcription: $transcriptionViewModel.transcriptions[index],
                     onSave: { updatedTranscription in
@@ -45,12 +53,62 @@ struct ContentView: View {
                         }
                     }
                 }
-            } else {
+            } else if audioFileTranscriberViewModel.isTranscribing || 
+                     audioFileTranscriberViewModel.isPreparingSegments ||
+                     !audioFileTranscriberViewModel.transcribedText.isEmpty {
+                // Show recording view only when actively transcribing or has transcription results
                 recordingView
+                    .toolbar {
+                        ToolbarItem(placement: .primaryAction) {
+                            fileTranscriptionButton
+                        }
+                    }
+            } else {
+                // Default: Show a new TranscriptionDetailView with a temporary transcription
+                TranscriptionDetailView(
+                    transcription: $temporaryTranscription,
+                    onSave: { newTranscription in
+                        // Create a copy with a new ID to ensure uniqueness
+                        var transcriptionToSave = newTranscription
+                        transcriptionToSave.id = UUID().uuidString
+                        
+                        // Add to the collection
+                        transcriptionViewModel.addTranscription(transcriptionToSave)
+                        
+                        // Select the newly created transcription
+                        DispatchQueue.main.async {
+                            transcriptionViewModel.selectedTranscription = transcriptionToSave
+                        }
+                        
+                        // Reset the temporary transcription for next time
+                        temporaryTranscription = Transcription(
+                            id: UUID().uuidString,
+                            title: "New Transcription",
+                            content: "",
+                            tags: [],
+                            wordTimestamps: []
+                        )
+                    }
+                )
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        fileTranscriptionButton
+                    }
+                }
             }
         }
         .frame(minWidth: 800, minHeight: 600)
         .environmentObject(transcriptionViewModel)
+    }
+    
+    private var fileTranscriptionButton: some View {
+        Button(action: {
+            audioFileTranscriberViewModel.selectAndTranscribeFile()
+        }) {
+            Label("Select Audio File", systemImage: "doc.badge.plus")
+        }
+        .help("Transcribe an audio file")
+        .disabled(audioFileTranscriberViewModel.isTranscribing || audioFileTranscriberViewModel.isPreparingSegments)
     }
     
     private var transcriptionListView: some View {
@@ -99,6 +157,7 @@ struct ContentView: View {
         let tags = transcriptionViewModel.generateTags(for: text)
         
         let newTranscription = Transcription(
+            id: UUID(),
             title: title,
             content: text,
             tags: tags,
@@ -115,9 +174,11 @@ struct ContentView: View {
     
     private func addTranscription() {
         let newTranscription = Transcription(
+            id: UUID(),
             title: "New Transcription",
             content: "",
-            tags: []
+            tags: [],
+            wordTimestamps: []
         )
         transcriptionViewModel.addTranscription(newTranscription)
         transcriptionViewModel.selectedTranscription = newTranscription

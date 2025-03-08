@@ -40,20 +40,7 @@ struct AudioFileTranscriberView: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            // File selection button
-            Button(action: {
-                viewModel.selectAndTranscribeFile()
-            }) {
-                HStack {
-                    Image(systemName: "doc.badge.plus")
-                        .font(.system(size: 20))
-                    Text("Select Audio File")
-                        .font(.headline)
-                }
-                .frame(minWidth: 180, minHeight: 40)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(viewModel.isTranscribing || viewModel.isPreparingSegments)
+            // File selection button has been moved to the toolbar
             
             // Show file splitting progress
             if viewModel.isPreparingSegments {

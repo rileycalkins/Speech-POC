@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct WordTimestamp: Identifiable, Hashable {
+struct WordTimestamp: Identifiable, Hashable, Codable {
     var id = UUID()
     var word: String
     var startTime: TimeInterval

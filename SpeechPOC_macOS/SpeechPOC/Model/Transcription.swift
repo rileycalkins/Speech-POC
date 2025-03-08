@@ -11,7 +11,7 @@ import Foundation
 // Make sure WordTimestamp.swift is included in your target's Compile Sources build phase
 // Both files should be in the same module
 
-struct Transcription: Identifiable, Hashable {
+struct Transcription: Identifiable, Codable, Hashable {
     var id = UUID()
     var title: String
     var content: String
@@ -23,7 +23,11 @@ struct Transcription: Identifiable, Hashable {
     }
 
     static func ==(lhs: Transcription, rhs: Transcription) -> Bool {
-        return lhs.id == rhs.id
+        lhs.id == rhs.id &&
+        lhs.title == rhs.title &&
+        lhs.content == rhs.content &&
+        lhs.tags == rhs.tags &&
+        lhs.wordTimestamps == rhs.wordTimestamps
     }
 }
 
