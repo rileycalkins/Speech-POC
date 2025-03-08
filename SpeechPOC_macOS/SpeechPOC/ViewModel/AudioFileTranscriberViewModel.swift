@@ -12,7 +12,7 @@ import Combine
 class AudioFileTranscriberViewModel: ObservableObject {
     @Published var transcribedText: String = ""
     @Published var isTranscribing: Bool = false
-    @Published var progress: Double = 0.0
+    
     @Published var estimatedRemainingTime: TimeInterval = 0
     @Published var errorMessage: String?
     @Published var wordTimestamps: [WordTimestamp] = []
@@ -126,7 +126,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
         
         // Reset previous state
         self.transcribedText = ""
-        self.progress = 0
+        
         self.errorMessage = nil
         self.wordTimestamps = []
         self.overallProgress = 0.0
@@ -259,7 +259,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
         }
         
         // Reset progress for the current segment before starting
-        progress = 0.0
+        overallProgress = 0.0
         
         // Make sure we have the right number of progress entries
         while segmentProgress.count <= currentSegmentIndex {
@@ -318,7 +318,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
         
         // Set overall progress to 1.0 (completed)
         overallProgress = 1.0
-        progress = 1.0
+        
         
         isTranscribing = false
     }
@@ -394,7 +394,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
                             if self.currentSegmentIndex >= 0 && self.currentSegmentIndex < self.segmentProgress.count {
                                 self.segmentProgress[self.currentSegmentIndex] = 1.0
                             }
-                            self.progress = 1.0
+                            
                             
                             // Update overall progress
                             self.updateOverallProgress()
@@ -529,7 +529,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
             
             DispatchQueue.main.async {
                 // Update the current segment's progress
-                self.progress = newProgress
+                
                 
                 // Ensure we have enough elements in the segmentProgress array
                 while self.segmentProgress.count <= self.currentSegmentIndex {

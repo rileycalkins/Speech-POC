@@ -98,12 +98,12 @@ struct AudioFileTranscriberView: View {
             // Current segment progress when transcribing
             else if viewModel.isTranscribing {
                 VStack(spacing: 12) {
-                    ProgressView(value: viewModel.progress)
+                    ProgressView(value: viewModel.overallProgress)
                         .progressViewStyle(LinearProgressViewStyle())
                         .frame(maxWidth: .infinity)
                     
                     HStack {
-                        Text("Transcribing... \(Int(viewModel.progress * 100))%")
+                        Text("Transcribing... \(Int(viewModel.overallProgress * 100))%")
                         Spacer()
                         if viewModel.estimatedRemainingTime > 0 {
                             Text("Estimated time: \(viewModel.formatTimeRemaining(viewModel.estimatedRemainingTime))")

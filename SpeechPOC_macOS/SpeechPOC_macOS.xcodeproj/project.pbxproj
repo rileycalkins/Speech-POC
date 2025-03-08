@@ -15,6 +15,7 @@
 		21636DAE2D7A70610063D37D /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DAD2D7A70610063D37D /* FlowLayout.swift */; };
 		21636DB02D7AAAE00063D37D /* SharedComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DAF2D7AAAE00063D37D /* SharedComponents.swift */; };
 		21636DB22D7C0AA70063D37D /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DB12D7C0AA70063D37D /* RootView.swift */; };
+		21636DB42D7C40A60063D37D /* AppCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21636DB32D7C40A50063D37D /* AppCore.swift */; };
 		2171E7D72D779396008EC9E0 /* WordTimestamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2171E7D52D779396008EC9E0 /* WordTimestamp.swift */; };
 		21D7EDB82D77C9C500D582F2 /* RateLimiter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */; };
 		21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */; };
@@ -59,6 +60,7 @@
 		21636DAD2D7A70610063D37D /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		21636DAF2D7AAAE00063D37D /* SharedComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedComponents.swift; sourceTree = "<group>"; };
 		21636DB12D7C0AA70063D37D /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		21636DB32D7C40A50063D37D /* AppCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCore.swift; sourceTree = "<group>"; };
 		2171E7D52D779396008EC9E0 /* WordTimestamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordTimestamp.swift; sourceTree = "<group>"; };
 		21D7EDB72D77C9C500D582F2 /* RateLimiter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateLimiter.swift; sourceTree = "<group>"; };
 		21F5BAF52D7637070052EBBA /* AudioFileTranscriberView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioFileTranscriberView.swift; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 			isa = PBXGroup;
 			children = (
 				74E684B52CA4DA5B00803277 /* SpeechPOCApp.swift */,
+				21636DB32D7C40A50063D37D /* AppCore.swift */,
 				74E684E32CA4DBDD00803277 /* View */,
 				74E684E42CA4DC0000803277 /* ViewModel */,
 				749283222CA78DBB00456D77 /* Model */,
@@ -380,6 +383,7 @@
 				74CB4E732CA7187F00983594 /* ActionButtonStyle.swift in Sources */,
 				2171E7D72D779396008EC9E0 /* WordTimestamp.swift in Sources */,
 				21F5BAF62D7637070052EBBA /* AudioFileTranscriberView.swift in Sources */,
+				21636DB42D7C40A60063D37D /* AppCore.swift in Sources */,
 				21636DAE2D7A70610063D37D /* FlowLayout.swift in Sources */,
 				74CB4E692CA7132D00983594 /* TranscriptionDetailView.swift in Sources */,
 				74E53ABF2D38972C002FD8F6 /* BackButton.swift in Sources */,
