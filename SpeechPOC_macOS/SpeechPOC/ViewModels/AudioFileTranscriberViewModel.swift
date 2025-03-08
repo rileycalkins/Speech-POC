@@ -22,9 +22,6 @@ import Foundation
 
 class AudioFileTranscriberViewModel: ObservableObject {
 
-    
-  
-
     @Published var transcribedText: String = ""
     @Published var isTranscribing: Bool = false
     

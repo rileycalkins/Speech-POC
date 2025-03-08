@@ -4,6 +4,25 @@ import Speech
 import Combine
 import Foundation
 
+extension AVFileType {
+    var fileExtension: String {
+        switch self {
+        case .wav:
+            return "wav"
+        case .mp3:
+            return "mp3"
+        case .m4a:
+            return "m4a"
+        case .aiff:
+            return "aif"
+        case .mp4:
+            return "mp4"
+        default:
+            return "m4a"
+        }
+    }
+}
+
 /// A combined view that integrates transcription listing, creation, and editing in one interface
 struct TranscriptionManagerView: View {
     // ViewModel for audio transcription
@@ -73,40 +92,7 @@ struct TranscriptionManagerView: View {
             // DETAIL VIEW: Combined transcription details and creation
             ScrollView {
                 VStack(spacing: 20) {
-                    // SECTION 1: Transcription Actions
-                    DisclosureGroup(
-                        isExpanded: .constant(true),
-                        content: {
-                            VStack(alignment: .leading, spacing: 12) {
-                                Button("Select Audio File for Transcription") {
-                                    // Cancel any existing transcription
-                                    if isTranscribing {
-                                        audioViewModel.cancelTranscription()
-                                    }
-                                    
-                                    // Reset UI state
-                                    selectedTranscription = nil
-                                    isTranscribing = true
-                                    showTranscriptionPreview = true
-                                    
-                                    // Start new transcription
-                                    audioViewModel.selectAndTranscribeFile()
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .disabled(isTranscribing)
-                                
-                                if isTranscribing && audioViewModel.errorMessage == nil {
-                                    Text("Transcription in progress...")
-                                        .foregroundColor(.secondary)
-                                }
-                            }
-                            .padding(.vertical, 8)
-                        },
-                        label: {
-                            Label("Transcription Actions", systemImage: "waveform")
-                                .font(.headline)
-                        }
-                    )
+                    TransactionActions(audioViewModel: audioViewModel, isTranscribing: $isTranscribing)
                     .padding(.horizontal)
                     
                     // SECTION 2: Transcription Progress (from AudioFileTranscriberView)
@@ -129,103 +115,21 @@ struct TranscriptionManagerView: View {
                     // SECTION 3: Current Transcription Details (from TranscriptionDetailView)
                     // Only show when a transcription is selected or being created
                     if selectedTranscription != nil || showTranscriptionPreview {
-                        DisclosureGroup(
-                            isExpanded: .constant(true),
-                            content: {
-                                VStack(alignment: .leading, spacing: 12) {
-                                    // If we have a selected transcription or a preview from audioViewModel
-                                    if let transcription = selectedTranscription {
-                                        // Editable transcription details
-                                        TextField("Title", text: Binding(
-                                            get: { transcription.title },
-                                            set: { newValue in
-                                                if let index = transcriptions.firstIndex(where: { $0.id == transcription.id }) {
-                                                    transcriptions[index].title = newValue
-                                                }
-                                            }
-                                        ))
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                        
-                                        TextEditor(text: Binding(
-                                            get: { transcription.content },
-                                            set: { newValue in
-                                                if let index = transcriptions.firstIndex(where: { $0.id == transcription.id }) {
-                                                    transcriptions[index].content = newValue
-                                                }
-                                            }
-                                        ))
-                                        .frame(minHeight: 150)
-                                        .border(Color.gray.opacity(0.3))
-                                        
-                                        // Save button
-                                        HStack {
-                                            Spacer()
-                                            Button("Save Changes") {
-                                                // Save changes logic 
-                                                // (could dispatch to a ViewModel or persistence service)
-                                            }
-                                            .buttonStyle(.borderedProminent)
-                                        }
-                                    } else if showTranscriptionPreview && !audioViewModel.transcribedText.isEmpty {
-                                        // Show transcription preview from audio viewModel
-                                        Text("Transcription Preview")
-                                            .font(.headline)
-                                        
-                                        TextEditor(text: .constant(audioViewModel.transcribedText))
-                                            .frame(minHeight: 150)
-                                            .border(Color.gray.opacity(0.3))
-                                            .disabled(true)
-                                        
-                                        // Save Preview button 
-                                        HStack {
-                                            Spacer()
-                                            Button("Save as New Transcription") {
-                                                saveTranscriptionFromPreview()
-                                            }
-                                            .buttonStyle(.borderedProminent)
-                                        }
-                                    } else {
-                                        Text("Waiting for transcription...")
-                                            .foregroundColor(.secondary)
-                                    }
-                                }
-                                .padding(.vertical, 8)
-                            },
-                            label: {
-                                Label("Transcription Content", systemImage: "doc.text")
-                                    .font(.headline)
-                            }
+                        CurrentTranscriptionDetails(
+                            isTranscribing: $isTranscribing,
+                            selectedTranscription: $selectedTranscription,
+                            transcriptions: $transcriptions,
+                            showTranscriptionPreview: $showTranscriptionPreview,
+                            audioViewModel: audioViewModel
                         )
                         .padding(.horizontal)
                         
                         // SECTION 4: Word Timestamps (collapsible)
                         if let currentTranscription = getCurrentTranscription(),
                            !currentTranscription.wordTimestamps.isEmpty {
-                            DisclosureGroup(
-                                isExpanded: $showWordTimestamps,
-                                content: {
-                                    ScrollView {
-                                        LazyVStack(alignment: .leading, spacing: 4) {
-                                            ForEach(currentTranscription.wordTimestamps) { timestamp in
-                                                WordTimestampView(
-                                                    word: timestamp.word,
-                                                    startTime: timestamp.formattedStartTime,
-                                                    endTime: timestamp.formattedEndTime
-                                                )
-                                            }
-                                        }
-                                        .padding(8)
-                                    }
-                                    .frame(height: 200)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(Color.gray.opacity(0.05))
-                                    )
-                                },
-                                label: {
-                                    Label("Word Timestamps", systemImage: "clock")
-                                        .font(.headline)
-                                }
+                            WordTimestampsSection(
+                                showWordTimestamps: $showWordTimestamps,
+                                currentTranscription: currentTranscription
                             )
                             .padding(.horizontal)
                         }
@@ -293,27 +197,7 @@ struct TranscriptionManagerView: View {
         return nil
     }
     
-    /// Create a new transcription from the audio transcription preview
-    private func saveTranscriptionFromPreview() {
-        let newTranscription = Transcription(
-            title: "Transcription \(Date().formatted(date: .abbreviated, time: .shortened))",
-            content: audioViewModel.transcribedText,
-            tags: [],
-            wordTimestamps: audioViewModel.wordTimestamps
-        )
-        transcriptions.append(newTranscription)
-        
-        // Update UI state for new transcription
-        selectedTranscription = newTranscription
-        isTranscribing = false
-        showTranscriptionPreview = false
-        
-        // Clear audio transcription state
-        DispatchQueue.main.async {
-            audioViewModel.transcribedText = ""
-            audioViewModel.wordTimestamps = []
-        }
-    }
+    
     
     /// Add a new empty transcription
     private func addTranscription() {
