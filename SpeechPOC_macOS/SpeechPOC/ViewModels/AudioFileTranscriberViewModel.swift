@@ -21,6 +21,10 @@ import Foundation
 // are included in the same target/module in Xcode project settings
 
 class AudioFileTranscriberViewModel: ObservableObject {
+
+    
+  
+
     @Published var transcribedText: String = ""
     @Published var isTranscribing: Bool = false
     
@@ -62,7 +66,8 @@ class AudioFileTranscriberViewModel: ObservableObject {
     
     // Add rate limiter
     private let rateLimiter = RateLimiter()
-    
+  
+
     init() {
         requestSpeechRecognitionAccess()
     }

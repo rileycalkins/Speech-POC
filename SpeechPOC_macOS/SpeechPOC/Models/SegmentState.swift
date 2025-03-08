@@ -52,4 +52,4 @@ enum SegmentState: Equatable {
             return "(Error)"
         }
     }
-} 
+}

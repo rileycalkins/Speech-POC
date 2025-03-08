@@ -7,7 +7,7 @@
 
 import Foundation
 
-// WordTimestamp is defined in WordTimestamp.swift
+// WordTimestamp is defined in Worcp.swift
 // Make sure WordTimestamp.swift is included in your target's Compile Sources build phase
 // Both files should be in the same module
 

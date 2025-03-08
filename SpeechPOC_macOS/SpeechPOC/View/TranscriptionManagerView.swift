@@ -11,7 +11,14 @@ struct TranscriptionManagerView: View {
     
     // State for transcriptions management
     @State private var transcriptions: [Transcription] = []
-    @State private var selectedTranscription: Transcription?
+    @State private var selectedTranscription: Transcription? {
+        didSet {
+            // Reset UI state when transcription selection changes
+            if selectedTranscription != oldValue {
+                resetUIState()
+            }
+        }
+    }
     @State private var isTranscribing: Bool = false
     @State private var isEditMode: Bool = false
     
@@ -35,6 +42,10 @@ struct TranscriptionManagerView: View {
                                           Color(NSColor.selectedTextBackgroundColor).opacity(0.2) : Color.clear)
                             )
                             .contentShape(Rectangle())
+                            .onTapGesture {
+                                // Explicitly handle selection to ensure UI updates
+                                handleTranscriptionSelection(transcription)
+                            }
                     }
                     .onMove(perform: moveTranscriptions)
                     .onDelete(perform: deleteTranscriptions)
@@ -68,9 +79,18 @@ struct TranscriptionManagerView: View {
                         content: {
                             VStack(alignment: .leading, spacing: 12) {
                                 Button("Select Audio File for Transcription") {
-                                    audioViewModel.selectAndTranscribeFile()
+                                    // Cancel any existing transcription
+                                    if isTranscribing {
+                                        audioViewModel.cancelTranscription()
+                                    }
+                                    
+                                    // Reset UI state
+                                    selectedTranscription = nil
                                     isTranscribing = true
                                     showTranscriptionPreview = true
+                                    
+                                    // Start new transcription
+                                    audioViewModel.selectAndTranscribeFile()
                                 }
                                 .buttonStyle(.borderedProminent)
                                 .disabled(isTranscribing)
@@ -161,8 +181,6 @@ struct TranscriptionManagerView: View {
                                             Spacer()
                                             Button("Save as New Transcription") {
                                                 saveTranscriptionFromPreview()
-                                                isTranscribing = false
-                                                showTranscriptionPreview = false
                                             }
                                             .buttonStyle(.borderedProminent)
                                         }
@@ -284,7 +302,17 @@ struct TranscriptionManagerView: View {
             wordTimestamps: audioViewModel.wordTimestamps
         )
         transcriptions.append(newTranscription)
+        
+        // Update UI state for new transcription
         selectedTranscription = newTranscription
+        isTranscribing = false
+        showTranscriptionPreview = false
+        
+        // Clear audio transcription state
+        DispatchQueue.main.async {
+            audioViewModel.transcribedText = ""
+            audioViewModel.wordTimestamps = []
+        }
     }
     
     /// Add a new empty transcription
@@ -295,7 +323,11 @@ struct TranscriptionManagerView: View {
             tags: []
         )
         transcriptions.append(newTranscription)
+        
+        // Select the new transcription and reset UI state
         selectedTranscription = newTranscription
+        showTranscriptionPreview = false
+        isTranscribing = false
     }
     
     /// Reorder transcriptions in the list
@@ -328,6 +360,33 @@ struct TranscriptionManagerView: View {
                 tags: ["sample"]
             )
         ]
+    }
+    
+    /// Reset UI state when switching between transcriptions
+    private func resetUIState() {
+        // Reset collapsible sections to default states
+        showWordTimestamps = false
+        showTagsSection = false
+        
+        // Clear preview state if we've selected an existing transcription
+        if selectedTranscription != nil {
+            showTranscriptionPreview = false
+        }
+    }
+    
+    // New helper method to handle transcription selection
+    private func handleTranscriptionSelection(_ transcription: Transcription) {
+        // Stop any ongoing transcription
+        if isTranscribing {
+            audioViewModel.cancelTranscription()
+            isTranscribing = false
+        }
+        
+        // Clear any preview state
+        showTranscriptionPreview = false
+        
+        // Set the selected transcription
+        selectedTranscription = transcription
     }
 }
 
@@ -464,6 +523,22 @@ struct SegmentProgressView: View {
         return state
     }
     
+    // Calculate segment duration based on number of segments
+    private func getSegmentDuration() -> String {
+        // Use a fixed estimated duration based on the number of segments
+        let estimatedTotalDuration: TimeInterval = 180.0 // 3 minutes default
+        var segmentDuration: TimeInterval = estimatedTotalDuration
+        
+        if viewModel.numberOfSegments > 0 {
+            segmentDuration = estimatedTotalDuration / Double(viewModel.numberOfSegments)
+        }
+        
+        // Format as MM:SS
+        let minutes = Int(segmentDuration) / 60
+        let seconds = Int(segmentDuration) % 60
+        return String(format: "(%02d:%02d)", minutes, seconds)
+    }
+    
     var body: some View {
         VStack(spacing: 4) {
             // Get state for this segment
@@ -472,6 +547,11 @@ struct SegmentProgressView: View {
             HStack {
                 Text("Segment \(index + 1)")
                     .font(.callout)
+                
+                // Add segment duration display
+                Text(getSegmentDuration())
+                    .font(.caption)
+                    .foregroundColor(.secondary)
                 
                 Text(state.label)
                     .font(.caption)
