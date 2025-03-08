@@ -326,10 +326,13 @@ struct TranscriptionProgressView: View {
                         Text("Segments")
                             .font(.headline)
                         Spacer()
-                        Text("Processing segment \(viewModel.currentSegmentIndex + 1) of \(viewModel.numberOfSegments)")
+                        let csIndex = viewModel.currentSegmentIndex
+                        let numSegments = viewModel.numberOfSegments
+                        let indexEqualsSegments = csIndex == numSegments
+                        Text("Processing segment \(indexEqualsSegments ? numSegments : csIndex + 1) of \(numSegments)")
                             .font(.caption)
                             .foregroundColor(.blue)
-                            .animation(.easeInOut, value: viewModel.currentSegmentIndex)
+                            .animation(.easeInOut, value: csIndex)
                     }
                     
                     ForEach(0..<viewModel.segmentProgress.count, id: \.self) { index in
