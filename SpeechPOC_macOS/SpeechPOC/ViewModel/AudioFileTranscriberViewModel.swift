@@ -8,6 +8,17 @@ import SwiftUI
 import AVFoundation
 import Speech
 import Combine
+import Foundation
+
+// Direct references to required models to fix linter errors
+// This is needed because importing from the same module
+// doesn't always work with Swift module structure
+// WordTimestamp should be defined in Model/WordTimestamp.swift
+// RateLimiter should be defined in Utilities/RateLimiter.swift
+// ProgressManager should be defined in Utilities/ProgressManager.swift
+
+// If types are still not found after this, we need to ensure all files
+// are included in the same target/module in Xcode project settings
 
 class AudioFileTranscriberViewModel: ObservableObject {
     @Published var transcribedText: String = ""
@@ -20,9 +31,15 @@ class AudioFileTranscriberViewModel: ObservableObject {
     // New properties for file splitting
     @Published var numberOfSegments: Int = 1
     @Published var currentSegmentIndex: Int = 0
-    @Published var segmentProgress: [Double] = []
     @Published var isPreparingSegments: Bool = false
-    @Published var overallProgress: Double = 0.0
+    
+    // Progress manager for tracking progress
+    private let _progressManager = ProgressManager(segments: 1)
+    // Expose progress manager as read-only for the view to access segment states
+    var progressManager: ProgressManager { _progressManager }
+    // Expose progress properties from the manager
+    var segmentProgress: [Double] { _progressManager.segmentProgress }
+    var overallProgress: Double { _progressManager.overallProgress }
     
     private var recognitionRequest: SFSpeechURLRecognitionRequest?
     private var recognitionTask: SFSpeechRecognitionTask?
@@ -82,7 +99,7 @@ class AudioFileTranscriberViewModel: ObservableObject {
         }
     }
     
-    private func showSegmentSelectionDialog(url: URL) {
+    func showSegmentSelectionDialog(url: URL) {
         // Create an alert to ask the user for the number of segments
         let alert = NSAlert()
         alert.messageText = "Split Audio File"
@@ -100,7 +117,8 @@ class AudioFileTranscriberViewModel: ObservableObject {
                 if response == .alertFirstButtonReturn { // OK button
                     if let segments = Int(textField.stringValue), segments > 0 {
                         self.numberOfSegments = segments
-                        self.segmentProgress = Array(repeating: 0.0, count: segments)
+                        // Initialize progress manager with the number of segments
+                        self._progressManager.reset(segments: segments)
                         self.processAudioFile(url: url)
                     } else {
                         self.errorMessage = "Please enter a valid number of segments"
@@ -112,7 +130,8 @@ class AudioFileTranscriberViewModel: ObservableObject {
             if response == .alertFirstButtonReturn { // OK button
                 if let segments = Int(textField.stringValue), segments > 0 {
                     self.numberOfSegments = segments
-                    self.segmentProgress = Array(repeating: 0.0, count: segments)
+                    // Initialize progress manager with the number of segments
+                    self._progressManager.reset(segments: segments)
                     self.processAudioFile(url: url)
                 } else {
                     self.errorMessage = "Please enter a valid number of segments"
@@ -124,12 +143,13 @@ class AudioFileTranscriberViewModel: ObservableObject {
     private func processAudioFile(url: URL) {
         guard !isTranscribing else { return }
         
+        logDebug("Starting to process audio file: \(url.lastPathComponent)")
+        
         // Reset previous state
         self.transcribedText = ""
         
         self.errorMessage = nil
         self.wordTimestamps = []
-        self.overallProgress = 0.0
         self.currentSegmentIndex = 0
         
         // Reset segment-related properties
@@ -137,7 +157,9 @@ class AudioFileTranscriberViewModel: ObservableObject {
         self.segmentDurations = []
         self.segmentTexts = []
         self.segmentWordTimestamps = []
-        self.segmentProgress = Array(repeating: 0.0, count: self.numberOfSegments)
+        
+        // Reset progress manager
+        self._progressManager.reset(segments: self.numberOfSegments)
         
         // Clean up previous temporary files
         self.cleanupTemporaryFiles()
@@ -147,11 +169,14 @@ class AudioFileTranscriberViewModel: ObservableObject {
             guard let self = self else { return }
             
             self.audioDuration = duration
+            self.logDebug("Audio duration: \(self.formatTimeRemaining(duration))")
             
             if self.numberOfSegments > 1 {
+                self.logDebug("Splitting audio into \(self.numberOfSegments) segments")
                 self.isPreparingSegments = true
                 self.splitAudioFile(url: url)
             } else {
+                self.logDebug("Processing single audio file (no splitting)")
                 self.segmentURLs = [url]
                 self.segmentDurations = [duration]
                 self.startProcessingNextSegment()
@@ -165,9 +190,11 @@ class AudioFileTranscriberViewModel: ObservableObject {
         do {
             try FileManager.default.createDirectory(at: temporaryDirectory, withIntermediateDirectories: true)
             self.temporaryDirectoryURL = temporaryDirectory
+            logDebug("Created temporary directory: \(temporaryDirectory.lastPathComponent)")
         } catch {
             self.errorMessage = "Failed to create temporary directory: \(error.localizedDescription)"
             self.isPreparingSegments = false
+            logDebug("Error creating temporary directory: \(error.localizedDescription)")
             return
         }
         
@@ -181,11 +208,28 @@ class AudioFileTranscriberViewModel: ObservableObject {
                 guard status == .loaded else {
                     self.errorMessage = "Failed to load audio asset: \(error?.localizedDescription ?? "Unknown error")"
                     self.isPreparingSegments = false
+                    self.logDebug("Error loading audio asset: \(error?.localizedDescription ?? "Unknown error")")
                     return
                 }
                 
                 let duration = CMTimeGetSeconds(asset.duration)
                 let segmentDuration = duration / Double(self.numberOfSegments)
+                self.logDebug("Total duration: \(self.formatTimeRemaining(duration)), segment duration: \(self.formatTimeRemaining(segmentDuration))")
+                
+                // Pre-calculate all segment durations for progress manager
+                var segmentDurations: [TimeInterval] = []
+                for i in 0..<self.numberOfSegments {
+                    let startTime = Double(i) * segmentDuration
+                    let endTime = min(startTime + segmentDuration, duration)
+                    segmentDurations.append(endTime - startTime)
+                }
+                
+                // Set segment durations in progress manager
+                self._progressManager.setSegmentDurations(segmentDurations)
+                self.logDebug("Set segment durations in progress manager")
+                
+                // Create a counter to track completed export operations
+                var completedExports = 0
                 
                 // Create export sessions for each segment
                 for i in 0..<self.numberOfSegments {
@@ -200,10 +244,13 @@ class AudioFileTranscriberViewModel: ObservableObject {
                     let segmentFileName = "segment_\(i).\(fileType.fileExtension)"
                     let segmentURL = temporaryDirectory.appendingPathComponent(segmentFileName)
                     
+                    self.logDebug("Creating segment \(i+1): \(segmentFileName), duration: \(self.formatTimeRemaining(endTime - startTime))")
+                    
                     // Setup export session
                     guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough) else {
-                        self.errorMessage = "Failed to create export session"
+                        self.errorMessage = "Failed to create export session for segment \(i+1)"
                         self.isPreparingSegments = false
+                        self.logDebug("Failed to create export session for segment \(i+1)")
                         return
                     }
                     
@@ -216,15 +263,22 @@ class AudioFileTranscriberViewModel: ObservableObject {
                     
                     exportSession.exportAsynchronously {
                         DispatchQueue.main.async {
+                            completedExports += 1
+                            
                             if exportSession.status == .completed {
+                                self.logDebug("Completed export of segment \(i+1)/\(self.numberOfSegments)")
+                                
                                 // Check if all segments are processed
-                                if self.segmentURLs.count == self.numberOfSegments {
+                                if completedExports == self.numberOfSegments {
+                                    self.logDebug("All \(self.numberOfSegments) segments have been exported")
                                     self.isPreparingSegments = false
                                     self.startProcessingNextSegment()
                                 }
                             } else if exportSession.status == .failed {
-                                self.errorMessage = "Failed to export segment \(i): \(exportSession.error?.localizedDescription ?? "Unknown error")"
+                                let errorMsg = "Failed to export segment \(i+1): \(exportSession.error?.localizedDescription ?? "Unknown error")"
+                                self.errorMessage = errorMsg
                                 self.isPreparingSegments = false
+                                self.logDebug(errorMsg)
                             }
                         }
                     }
@@ -254,32 +308,18 @@ class AudioFileTranscriberViewModel: ObservableObject {
     private func startProcessingNextSegment() {
         guard currentSegmentIndex < segmentURLs.count else {
             // All segments processed, combine results
+            logDebug("All segments processed, finalizing transcription")
             finishTranscription()
             return
         }
         
         // Reset progress for the current segment before starting
-        overallProgress = 0.0
+        _progressManager.updateSegment(currentSegmentIndex, progress: 0.0)
         
-        // Make sure we have the right number of progress entries
-        while segmentProgress.count <= currentSegmentIndex {
-            segmentProgress.append(0.0)
-        }
+        // Update segment state
+        _progressManager.setSegmentState(currentSegmentIndex, state: .inProgress)
         
-        // Ensure currentSegmentIndex is valid
-        if currentSegmentIndex < 0 || currentSegmentIndex >= segmentProgress.count {
-            // Reset to valid state
-            currentSegmentIndex = 0
-            while segmentProgress.count <= currentSegmentIndex {
-                segmentProgress.append(0.0)
-            }
-        }
-        
-        // Reset the current segment's progress
-        segmentProgress[currentSegmentIndex] = 0.0
-        
-        // Update overall progress to reflect the current state
-        updateOverallProgress()
+        logDebug("Starting transcription of segment \(currentSegmentIndex + 1)/\(segmentURLs.count)")
         
         let segmentURL = segmentURLs[currentSegmentIndex]
         startTranscription(url: segmentURL)
@@ -311,16 +351,18 @@ class AudioFileTranscriberViewModel: ObservableObject {
         
         wordTimestamps = allWordTimestamps
         
-        // Set all segment progress values to 1.0 (completed)
-        for i in 0..<segmentProgress.count {
-            segmentProgress[i] = 1.0
+        // Mark all segments as completed
+        logDebug("Marking all segments as completed")
+        
+        // Set all segments to completed in progress manager with a slight delay
+        // This ensures that users can see the progress bar complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self = self else { return }
+            
+            // Use the new completeAll method to mark all segments as completed
+            self._progressManager.completeAll()
+            self.isTranscribing = false
         }
-        
-        // Set overall progress to 1.0 (completed)
-        overallProgress = 1.0
-        
-        
-        isTranscribing = false
     }
     
     private func getAudioDuration(for url: URL, completion: @escaping (TimeInterval) -> Void) {
@@ -343,19 +385,31 @@ class AudioFileTranscriberViewModel: ObservableObject {
     
     private func startTranscription(url: URL) {
         guard let speechRecognizer = speechRecognizer, speechRecognizer.isAvailable else {
-            self.errorMessage = "Speech recognizer not available"
+            let errorMsg = "Speech recognizer not available"
+            self.errorMessage = errorMsg
+            self.logDebug(errorMsg)
+            
+            // Mark segment as failed
+            _progressManager.setSegmentState(currentSegmentIndex, state: .error)
             return
         }
         
         isTranscribing = true
         startTime = Date()
         
+        logDebug("Creating recognition request for \(url.lastPathComponent)")
+        
         // Create and configure the speech recognition request
         recognitionRequest = SFSpeechURLRecognitionRequest(url: url)
         
         guard let recognitionRequest = recognitionRequest else {
-            self.errorMessage = "Unable to create recognition request"
+            let errorMsg = "Unable to create recognition request"
+            self.errorMessage = errorMsg
+            self.logDebug(errorMsg)
             isTranscribing = false
+            
+            // Mark segment as failed
+            _progressManager.setSegmentState(currentSegmentIndex, state: .error)
             return
         }
         
@@ -367,6 +421,8 @@ class AudioFileTranscriberViewModel: ObservableObject {
         
         // Start progress tracking with a slower update interval
         startProgressTracking()
+        
+        logDebug("Starting recognition task for segment \(currentSegmentIndex + 1)")
         
         // Start the recognition task
         recognitionTask = speechRecognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
@@ -386,23 +442,33 @@ class AudioFileTranscriberViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         // Update progress based on the transcribed text length if final
                         if result.isFinal {
+                            self.logDebug("Completed transcription of segment \(self.currentSegmentIndex + 1), found \(segmentWordTimestamps.count) words")
+                            // Set progress to 100% for this segment
+                            self._progressManager.updateSegment(self.currentSegmentIndex, progress: 1.0)
+                            
+                            // Mark segment as completed
+                            self._progressManager.setSegmentState(self.currentSegmentIndex, state: .completed)
+                            
                             // Save this segment's results
                             self.segmentTexts.append(segmentText)
                             self.segmentWordTimestamps.append(segmentWordTimestamps)
                             
-                            // Update segment progress - ensure array bounds safety
-                            if self.currentSegmentIndex >= 0 && self.currentSegmentIndex < self.segmentProgress.count {
-                                self.segmentProgress[self.currentSegmentIndex] = 1.0
-                            }
-                            
-                            
-                            // Update overall progress
-                            self.updateOverallProgress()
-                            
-                            // Move to next segment
+                            // Move to next segment with a slight delay to show completion
                             self.stopProgressTracking()
-                            self.currentSegmentIndex += 1
-                            self.startProcessingNextSegment()
+                            
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                self.currentSegmentIndex += 1
+                                self.startProcessingNextSegment()
+                            }
+                        } else if !segmentText.isEmpty {
+                            // Update progress based on partial results too
+                            // This helps show progress even for fast transcriptions
+                            let partialProgress = min(0.7, Double(segmentText.count) / 500.0)
+                            let currentProgress = self.segmentProgress[self.currentSegmentIndex]
+                            if partialProgress > currentProgress {
+                                self._progressManager.updateSegment(self.currentSegmentIndex, progress: partialProgress)
+                                self.logDebug("Partial progress update: \(Int(partialProgress * 100))% (text length: \(segmentText.count))")
+                            }
                         }
                     }
                     
@@ -412,7 +478,13 @@ class AudioFileTranscriberViewModel: ObservableObject {
             
             if let error = error {
                 DispatchQueue.main.async {
-                    self.errorMessage = "Error in segment \(self.currentSegmentIndex + 1): \(error.localizedDescription)"
+                    let errorMsg = "Error in segment \(self.currentSegmentIndex + 1): \(error.localizedDescription)"
+                    self.errorMessage = errorMsg
+                    self.logDebug(errorMsg)
+                    
+                    // Mark segment as failed
+                    self._progressManager.setSegmentState(self.currentSegmentIndex, state: .error)
+                    
                     // Still try to move to next segment
                     self.stopProgressTracking()
                     self.currentSegmentIndex += 1
@@ -486,31 +558,22 @@ class AudioFileTranscriberViewModel: ObservableObject {
         progressTimer?.invalidate()
         progressTimer = nil
         errorMessage = "Transcription canceled."
+        
+        // Mark current segment as failed
+        if currentSegmentIndex < segmentURLs.count {
+            _progressManager.setSegmentState(currentSegmentIndex, state: .error)
+        }
+        
         cleanupTemporaryFiles()
     }
     
-    private func updateOverallProgress() {
-        // Calculate overall progress based on completed segments, weighted by their durations
-        if !segmentDurations.isEmpty {
-            let totalDuration = segmentDurations.reduce(0.0, +)
-            var weightedProgress = 0.0
-            
-            for i in 0..<min(segmentProgress.count, segmentDurations.count) {
-                let weight = segmentDurations[i] / totalDuration
-                weightedProgress += segmentProgress[i] * weight
-            }
-            
-            overallProgress = min(weightedProgress, 1.0)
-        } else {
-            // Fallback to simple average if durations aren't available
-            let completedProgress = segmentProgress.reduce(0.0, +)
-            overallProgress = completedProgress / Double(numberOfSegments)
-        }
-    }
-    
     private func startProgressTracking() {
+        // Cancel any existing timer
+        progressTimer?.invalidate()
+        progressTimer = nil
+        
         // Increase timer interval to reduce update frequency
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
             guard let self = self, self.isTranscribing, let startTime = self.startTime else { return }
             
             let elapsedTime = Date().timeIntervalSince(startTime)
@@ -519,31 +582,42 @@ class AudioFileTranscriberViewModel: ObservableObject {
             let segmentDuration = self.currentSegmentIndex < self.segmentDurations.count ? 
                 self.segmentDurations[self.currentSegmentIndex] : self.audioDuration
             
-            // Calculate progress as a ratio of elapsed time to estimated duration
-            // We add a 20% processing overhead to account for recognition processing time
-            let estimatedTotalTime = segmentDuration * 1.2
-            let newProgress = min(elapsedTime / estimatedTotalTime, 0.95) // Cap at 95% until final result
+            // Important: Speech recognition can be much faster than real-time
+            // So we need to adjust our progress calculation to account for this
             
-            // Calculate estimated remaining time
-            let remainingTime = max(0, estimatedTotalTime - elapsedTime)
+            // Use a more sophisticated progress calculation:
+            // 1. For smaller files (< 1 minute), use a faster progress rate
+            // 2. For medium files (1-5 minutes), use a moderate rate
+            // 3. For larger files (> 5 minutes), use a more conservative rate
+            
+            let progressRate: Double
+            if segmentDuration < 60 {
+                // For short audio (< 1 min), progress moves quickly
+                progressRate = 0.5 // Complete 50% in ~6 seconds
+            } else if segmentDuration < 300 {
+                // For medium audio (1-5 min), progress moves at moderate pace
+                progressRate = 0.3 // Complete 50% in ~10 seconds
+            } else {
+                // For longer audio (> 5 min), progress moves more slowly
+                progressRate = 0.2 // Complete 50% in ~15 seconds
+            }
+            
+            // Calculate non-linear progress that starts quickly and slows down
+            // This gives a more responsive feel while still showing meaningful progress
+            let normalizedTime = min(elapsedTime * progressRate, 10.0) // Cap at 10 (reaches ~95%)
+            let newProgress = 1.0 - (1.0 / (1.0 + normalizedTime)) // Approaches 1.0 asymptotically
+            
+            // Ensure progress is between 0 and 0.95 (save the last 5% for final processing)
+            let boundedProgress = min(max(newProgress, 0.0), 0.95)
+            
+            // Calculate estimated remaining time (optimistic estimate based on non-linear progress)
+            let progressRemaining = 0.95 - boundedProgress
+            let progressPerSecond = boundedProgress / elapsedTime
+            let remainingTime = progressPerSecond > 0 ? progressRemaining / progressPerSecond : 0
             
             DispatchQueue.main.async {
-                // Update the current segment's progress
-                
-                
-                // Ensure we have enough elements in the segmentProgress array
-                while self.segmentProgress.count <= self.currentSegmentIndex {
-                    self.segmentProgress.append(0.0)
-                }
-                
-                // Update the current segment's progress
-                if self.currentSegmentIndex >= 0 && self.currentSegmentIndex < self.segmentProgress.count {
-                    self.segmentProgress[self.currentSegmentIndex] = newProgress
-                }
-                
-                // Recalculate the overall progress based on all segments
-                self.updateOverallProgress()
-                
+                // Update the progress for the current segment using progress manager
+                self._progressManager.updateSegment(self.currentSegmentIndex, progress: boundedProgress)
                 self.estimatedRemainingTime = remainingTime
             }
         }
@@ -586,5 +660,12 @@ class AudioFileTranscriberViewModel: ObservableObject {
         let minutes = Int(timeInterval) / 60
         let seconds = Int(timeInterval) % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+    
+    // Add a debug logger property
+    private func logDebug(_ message: String) {
+        #if DEBUG
+        print("🔊 AudioTranscriber: \(message)")
+        #endif
     }
 }
