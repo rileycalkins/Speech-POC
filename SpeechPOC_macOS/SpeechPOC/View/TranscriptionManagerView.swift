@@ -582,9 +582,4 @@ struct TranscriptionTagsView: View {
     }
 }
 
-// Preview
-struct TranscriptionManagerView_Previews: PreviewProvider {
-    static var previews: some View {
-        TranscriptionManagerView()
-    }
-} 
+

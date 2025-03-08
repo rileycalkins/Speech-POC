@@ -15,33 +15,7 @@ import Foundation
 // ViewModel for audio file transcription
 
 // Extension to get color for segment state
-extension SegmentState {
-    var color: Color {
-        switch self {
-        case .pending:
-            return .gray
-        case .inProgress:
-            return .blue
-        case .completed:
-            return .green
-        case .error:
-            return .red
-        }
-    }
-    
-    var label: String {
-        switch self {
-        case .pending:
-            return "(Pending)"
-        case .inProgress:
-            return "(Processing)"
-        case .completed:
-            return "(Completed)"
-        case .error:
-            return "(Error)"
-        }
-    }
-}
+
 
 // Extension for AVFileType to get file extensions
 extension AVFileType {

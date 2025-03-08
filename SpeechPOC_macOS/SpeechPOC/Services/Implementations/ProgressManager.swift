@@ -2,38 +2,34 @@ import SwiftUI
 import Foundation
 import Combine
 
-/// Represents the state of a segment in the progress tracking
-enum SegmentState {
-    case pending
-    case inProgress
-    case completed
-    case error
-    
-    var description: String {
-        switch self {
-        case .pending:
-            return "Pending"
-        case .inProgress:
-            return "In Progress"
-        case .completed:
-            return "Completed"
-        case .error:
-            return "Error"
-        }
-    }
-}
-
-/// A class to manage progress tracking for multi-segment operations
-class ProgressManager: ObservableObject {
+/// Implementation of ProgressTrackable that manages multi-segment progress tracking
+class ProgressManager: ObservableObject, ProgressTrackable {
+    /// Progress values for each segment (0.0 to 1.0)
     @Published var segmentProgress: [Double]
+    
+    /// Overall progress value (0.0 to 1.0)
     @Published var overallProgress: Double = 0.0
+    
+    /// Current state of each segment
     @Published var segmentStates: [SegmentState] = []
     
+    /// The number of segments being tracked
     private let numberOfSegments: Int
+    
+    /// Durations for each segment, used for weighted progress calculation
     private var segmentDurations: [TimeInterval] = []
+    
+    /// Total duration of all segments
     private var totalDuration: TimeInterval = 0.0
+    
+    /// Last time a log message was emitted
     private var lastLogTime = Date()
+    
+    /// Throttle interval for logging (to avoid console spam)
     private let logThrottleInterval: TimeInterval = 2.0 // Log at most every 2 seconds
+    
+    /// Logger for debugging
+    private let logger = Logger(subsystem: "com.speechpoc", category: "ProgressManager")
     
     /// Initialize with a fixed number of segments
     /// - Parameter segments: The number of segments to track
@@ -41,6 +37,8 @@ class ProgressManager: ObservableObject {
         self.numberOfSegments = max(segments, 1)
         self.segmentProgress = Array(repeating: 0.0, count: self.numberOfSegments)
         self.segmentStates = Array(repeating: .pending, count: self.numberOfSegments)
+        
+        logger.debug("Initialized progress manager with \(self.numberOfSegments) segments")
     }
     
     /// Set the durations for all segments
@@ -49,7 +47,8 @@ class ProgressManager: ObservableObject {
         segmentDurations = durations
         totalDuration = durations.reduce(0.0, +)
         calculateOverallProgress()
-        logProgressState()
+        
+        logger.debug("Set segment durations: \(durations.map { String(format: "%.1f", $0) }.joined(separator: ", ")) (total: \(totalDuration)s)")
     }
     
     /// Update the progress for a specific segment
@@ -110,6 +109,7 @@ class ProgressManager: ObservableObject {
             updateSegment(index, progress: 1.0)
         } else if state == .error {
             // Don't change progress on error
+            logger.debug("Segment \(index + 1) marked as error")
         } else if state == .pending {
             updateSegment(index, progress: 0.0)
         }
@@ -145,12 +145,14 @@ class ProgressManager: ObservableObject {
     }
     
     /// Reset all progress
+    /// - Parameter segments: Optional new number of segments
     func reset(segments: Int? = nil) {
         let segmentCount = segments ?? numberOfSegments
         self.segmentProgress = Array(repeating: 0.0, count: max(segmentCount, 1))
         self.segmentStates = Array(repeating: .pending, count: max(segmentCount, 1))
         self.overallProgress = 0.0
-        logProgressState()
+        
+        logger.debug("Reset progress manager with \(segmentCount) segments")
     }
     
     /// Mark all segments as completed
@@ -160,17 +162,45 @@ class ProgressManager: ObservableObject {
             segmentStates[i] = .completed
         }
         overallProgress = 1.0
-        logProgressState()
+        
+        logger.debug("Marked all \(segmentProgress.count) segments as completed")
     }
     
     /// Log the current progress state
     private func logProgressState() {
-        #if DEBUG
         var stateInfo = ""
         for i in 0..<segmentProgress.count {
             stateInfo += "Segment \(i+1): \(Int(segmentProgress[i] * 100))% (\(segmentStates[i].description)), "
         }
-        print("🔧 ProgressManager: Overall \(Int(overallProgress * 100))% - \(stateInfo)")
+        logger.debug("Overall \(Int(overallProgress * 100))% - \(stateInfo)")
+    }
+}
+
+/// Simple logger for debugging
+fileprivate class Logger {
+    let subsystem: String
+    let category: String
+    
+    init(subsystem: String, category: String) {
+        self.subsystem = subsystem
+        self.category = category
+    }
+    
+    func debug(_ message: String) {
+        #if DEBUG
+        print("🔧 [\(category)] \(message)")
+        #endif
+    }
+    
+    func info(_ message: String) {
+        #if DEBUG
+        print("ℹ️ [\(category)] \(message)")
+        #endif
+    }
+    
+    func error(_ message: String) {
+        #if DEBUG
+        print("⚠️ [\(category)] \(message)")
         #endif
     }
 } 
