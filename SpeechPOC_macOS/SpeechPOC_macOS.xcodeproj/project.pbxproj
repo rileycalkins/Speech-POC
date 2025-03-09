@@ -37,7 +37,6 @@
 		74E684B52CA4DA5B00803277 /* SpeechPOCApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPOCApp.swift; sourceTree = "<group>"; };
 		74E684B92CA4DA5C00803277 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		74E684BC2CA4DA5C00803277 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		74E684BE2CA4DA5C00803277 /* SpeechPOC.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeechPOC.entitlements; sourceTree = "<group>"; };
 		74E684C32CA4DA5C00803277 /* SpeechPOC_macOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpeechPOC_macOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		74E684C72CA4DA5C00803277 /* SpeechPOCTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechPOCTests.swift; sourceTree = "<group>"; };
 		74E684CD2CA4DA5C00803277 /* SpeechPOC_macOSUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpeechPOC_macOSUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -110,7 +109,6 @@
 				21636DF12D7C64EE0063D37D /* Components */,
 				21636DE62D7C64C00063D37D /* Utilities */,
 				74E684B92CA4DA5C00803277 /* Assets.xcassets */,
-				74E684BE2CA4DA5C00803277 /* SpeechPOC.entitlements */,
 				74E684BB2CA4DA5C00803277 /* Preview Content */,
 			);
 			path = SpeechPOC;

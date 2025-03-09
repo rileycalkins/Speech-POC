@@ -38,7 +38,14 @@ struct TranscriptionManagerView: View {
             }
         }
     }
-    @State private var isTranscribing: Bool = false
+    @State private var isTranscribing: Bool = false {
+        didSet {
+            // When transcription finishes, ensure preview is shown
+            if !isTranscribing && oldValue == true && !audioViewModel.transcribedText.isEmpty {
+                showTranscriptionPreview = true
+            }
+        }
+    }
     @State private var isEditMode: Bool = false
     
     // UI State
@@ -92,7 +99,11 @@ struct TranscriptionManagerView: View {
             // DETAIL VIEW: Combined transcription details and creation
             ScrollView {
                 VStack(spacing: 20) {
-                    TransactionActions(audioViewModel: audioViewModel, isTranscribing: $isTranscribing)
+                    TranscriptionActions(
+                        audioViewModel: audioViewModel, 
+                        isTranscribing: $isTranscribing,
+                        showTranscriptionPreview: $showTranscriptionPreview
+                    )
                     .padding(.horizontal)
                     
                     // SECTION 2: Transcription Progress (from AudioFileTranscriberView)
@@ -113,8 +124,8 @@ struct TranscriptionManagerView: View {
                     }
                     
                     // SECTION 3: Current Transcription Details (from TranscriptionDetailView)
-                    // Only show when a transcription is selected or being created
-                    if selectedTranscription != nil || showTranscriptionPreview {
+                    // Only show when a transcription is selected or being created or when there's transcribed text
+                    if selectedTranscription != nil || showTranscriptionPreview || !audioViewModel.transcribedText.isEmpty {
                         CurrentTranscriptionDetails(
                             isTranscribing: $isTranscribing,
                             selectedTranscription: $selectedTranscription,
@@ -176,6 +187,17 @@ struct TranscriptionManagerView: View {
         .onAppear {
             // Load saved transcriptions (placeholder)
             loadTranscriptions()
+        }
+        .onReceive(audioViewModel.$isTranscribing) { isViewModelTranscribing in
+            if !isViewModelTranscribing && isTranscribing {
+                // Transcription has completed in the ViewModel
+                isTranscribing = false
+                
+                if !audioViewModel.transcribedText.isEmpty {
+                    // Make sure the preview is shown
+                    showTranscriptionPreview = true
+                }
+            }
         }
     }
     
@@ -546,6 +568,48 @@ struct TranscriptionTagsView: View {
             tags.append(trimmedTag)
             newTag = ""
         }
+    }
+}
+
+/// Transcription actions view
+struct TranscriptionActions: View {
+    @ObservedObject var audioViewModel: AudioFileTranscriberViewModel
+    @Binding var isTranscribing: Bool
+    @Binding var showTranscriptionPreview: Bool
+    
+    var body: some View {
+        DisclosureGroup(
+            isExpanded: .constant(true),
+            content: {
+                VStack(alignment: .leading, spacing: 12) {
+                    Button("Select Audio File for Transcription") {
+                        // Cancel any existing transcription
+                        if isTranscribing {
+                            audioViewModel.cancelTranscription()
+                        }
+                        
+                        // Reset UI state
+                        isTranscribing = true
+                        showTranscriptionPreview = true
+                        
+                        // Start new transcription
+                        audioViewModel.selectAndTranscribeFile()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isTranscribing)
+                    
+                    if isTranscribing && audioViewModel.errorMessage == nil {
+                        Text("Transcription in progress...")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(.vertical, 8)
+            },
+            label: {
+                Label("Transcription Actions", systemImage: "waveform")
+                    .font(.headline)
+            }
+        )
     }
 }
 
